@@ -151,6 +151,7 @@ function Annotation({
       {annotationQuote && (
         <AnnotationQuote
           quote={annotationQuote}
+          uri={annotation.uri}
           isHovered={isHovered}
           isOrphan={isOrphan(annotation)}
         />
