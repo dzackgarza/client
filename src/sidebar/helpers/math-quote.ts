@@ -26,7 +26,9 @@ function extractMathMap(html: string): Map<string, string> {
       math.querySelector('annotation[encoding="application/x-tex"]')?.textContent ??
       '';
     if (garbled && tex && !map.has(garbled)) {
-      map.set(garbled, `$${tex.trim()}$`);
+      // \(..\) inline delimiters -- Hypothesis's markdown renders those and $$..$$,
+      // never single $..$ (which would show as literal text in the sidebar).
+      map.set(garbled, `\\(${tex.trim()}\\)`);
     }
   }
   return map;
