@@ -1,0 +1,143 @@
+diff --git a/node_modules/@hypothesis/annotation-ui/lib/utils/render-markdown.js b/node_modules/@hypothesis/annotation-ui/lib/utils/render-markdown.js
+index ae9c65e..91b2980 100644
+--- a/node_modules/@hypothesis/annotation-ui/lib/utils/render-markdown.js
++++ b/node_modules/@hypothesis/annotation-ui/lib/utils/render-markdown.js
+@@ -1,9 +1,28 @@
+ import createDOMPurify from 'dompurify';
+ import escapeHTML from 'escape-html';
+-import katex from 'katex';
+ import showdown from 'showdown';
++import { mathjax } from 'mathjax-full/js/mathjax.js';
++import { TeX } from 'mathjax-full/js/input/tex.js';
++import { SVG } from 'mathjax-full/js/output/svg.js';
++import { liteAdaptor } from 'mathjax-full/js/adaptors/liteAdaptor.js';
++import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
++import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
+ var DOMPurify = createDOMPurify(window);
+ 
++// Render math with MathJax (full LaTeX surface), not KaTeX: notes and recovered
++// quotes are authored/stored as standard LaTeX and must render the same macros,
++// environments and packages a real LaTeX document would. Synchronous TeX -> SVG
++// via the lite adaptor, so this stays a drop-in for the previous sync renderer.
++var _mjAdaptor = liteAdaptor();
++RegisterHTMLHandler(_mjAdaptor);
++var _mjDoc = mathjax.document('', {
++  InputJax: new TeX({ packages: AllPackages }),
++  OutputJax: new SVG({ fontCache: 'none' }),
++});
++function renderTeX(tex, display) {
++  return _mjAdaptor.outerHTML(_mjDoc.convert(tex, { display: display }));
++}
++
+ // Ensure that any links generated either by Showdown or in the markdown/HTML
+ // passed to Showdown open in an external window.
+ DOMPurify.addHook('afterSanitizeAttributes', function (node) {
+@@ -48,64 +67,70 @@ function mathPlaceholder(id) {
+  * list of math blocks found in the string, plus the input string with math
+  * blocks replaced by placeholders.
+  */
++// The standard LaTeX/MathJax delimiter set: $$..$$ and \[..\] for display,
++// $..$ and \(..\) for inline. Longer openers match first so $$ beats $.
++var MATH_DELIMITERS = [
++  { open: '$$', close: '$$', display: true },
++  { open: '\\[', close: '\\]', display: true },
++  { open: '\\(', close: '\\)', display: false },
++  { open: '$', close: '$', display: false },
++];
+ function extractMath(content) {
+   var mathBlocks = [];
++  var out = '';
+   var pos = 0;
+-  var replacedContent = content;
+-  while (true) {
+-    var blockMathStart = replacedContent.indexOf('$$', pos);
+-    var inlineMathStart = replacedContent.indexOf('\\(', pos);
+-    if (blockMathStart === -1 && inlineMathStart === -1) {
+-      break;
+-    }
+-    var mathStart = void 0;
+-    var mathEnd = void 0;
+-    if (blockMathStart !== -1 && (inlineMathStart === -1 || blockMathStart < inlineMathStart)) {
+-      mathStart = blockMathStart;
+-      mathEnd = replacedContent.indexOf('$$', mathStart + 2);
+-    } else {
+-      mathStart = inlineMathStart;
+-      mathEnd = replacedContent.indexOf('\\)', mathStart + 2);
++  while (pos < content.length) {
++    var best = null;
++    for (var i = 0; i < MATH_DELIMITERS.length; i++) {
++      var d = MATH_DELIMITERS[i];
++      var idx = content.indexOf(d.open, pos);
++      // A single $ preceded by a backslash is a literal dollar, not math.
++      while (idx > 0 && d.open === '$' && content[idx - 1] === '\\') {
++        idx = content.indexOf(d.open, idx + 1);
++      }
++      if (idx === -1) {
++        continue;
++      }
++      if (best === null || idx < best.idx || (idx === best.idx && d.open.length > best.d.open.length)) {
++        best = { idx: idx, d: d };
++      }
+     }
+-    if (mathEnd === -1) {
++    if (best === null) {
++      out += content.slice(pos);
+       break;
+-    } else {
+-      mathEnd = mathEnd + 2;
+     }
++    var open = best.d.open;
++    var close = best.d.close;
++    var exprStart = best.idx + open.length;
++    var closeIdx = content.indexOf(close, exprStart);
++    if (closeIdx === -1) {
++      // Unterminated delimiter: emit the opener literally and keep scanning.
++      out += content.slice(pos, exprStart);
++      pos = exprStart;
++      continue;
++    }
++    out += content.slice(pos, best.idx);
+     var id = mathBlocks.length + 1;
+     var placeholder = mathPlaceholder(id);
+     mathBlocks.push({
+       id: id,
+-      expression: replacedContent.slice(mathStart + 2, mathEnd - 2),
+-      inline: inlineMathStart !== -1
++      expression: content.slice(exprStart, closeIdx),
++      inline: !best.d.display
+     });
+-    var replacement = void 0;
+-    if (inlineMathStart !== -1) {
+-      replacement = placeholder;
+-    } else {
+-      // Add new lines before and after math blocks so that they render
+-      // as separate paragraphs
+-      replacement = '\n\n' + placeholder + '\n\n';
+-    }
+-    replacedContent = replacedContent.slice(0, mathStart) + replacement + replacedContent.slice(mathEnd);
+-    pos = mathStart + replacement.length;
++    // Display math renders as its own paragraph; inline stays in the text flow.
++    out += best.d.display ? '\n\n' + placeholder + '\n\n' : placeholder;
++    pos = closeIdx + close.length;
+   }
+   return {
+     mathBlocks: mathBlocks,
+-    content: replacedContent
++    content: out
+   };
+ }
+ function insertMath(html, mathBlocks) {
+   return mathBlocks.reduce(function (html, block) {
+     var renderedMath;
+     try {
+-      if (block.inline) {
+-        renderedMath = katex.renderToString(block.expression);
+-      } else {
+-        renderedMath = katex.renderToString(block.expression, {
+-          displayMode: true
+-        });
+-      }
++      renderedMath = renderTeX(block.expression, !block.inline);
+     } catch (_unused) {
+       renderedMath = escapeHTML(block.expression);
+     }

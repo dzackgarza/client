@@ -78,8 +78,10 @@
     "mustache": "^4.0.1",
     "mustache-express": "^1.3.2",
     "npm-packlist": "^10.0.0",
+    "patch-package": "^8.0.1",
     "playwright": "^1.51.1",
     "postcss": "^8.0.3",
+    "postinstall-postinstall": "^2.1.0",
     "preact": "^10.4.0",
     "preact-render-to-string": "^6.4.0",
     "prettier": "3.7.4",
@@ -120,7 +122,11 @@
     "format": "prettier --cache --list-different --write '**/*.{css,js,scss,ts,tsx,d.ts}'",
     "test": "gulp test",
     "test:watch": "gulp test --live",
-    "typecheck": "tsc --build tsconfig.json"
+    "typecheck": "tsc --build tsconfig.json",
+    "postinstall": "patch-package"
   },
-  "packageManager": "yarn@3.6.0"
+  "packageManager": "yarn@3.6.0",
+  "dependencies": {
+    "mathjax-full": "^3.2.2"
+  }
 }
