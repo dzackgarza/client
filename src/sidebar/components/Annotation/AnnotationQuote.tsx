@@ -6,7 +6,7 @@ import { useEffect, useState } from 'preact/hooks';
 import type { SidebarSettings } from '../../../types/config';
 import {
   cleanMathQuote,
-  hasGarbledMath,
+  mightSpanMath,
   ocrMathQuote,
   pdfHasMath,
 } from '../../helpers/math-quote';
@@ -47,7 +47,7 @@ function AnnotationQuote({
   // HTML math recovers from the page's x-tex layer; PDF math has no such layer and is OCR'd
   // via the configured endpoint. Both only change what is displayed, never the annotation.
   const ocrUrl = settings.ocrUrl;
-  const needsHtmlMath = hasGarbledMath(quote);
+  const needsHtmlMath = mightSpanMath(quote);
   const needsPdfMath =
     !needsHtmlMath && !!uri && !!pdfRegion && !!ocrUrl && pdfHasMath(quote);
   const [mathQuote, setMathQuote] = useState<string | null>(null);
