@@ -302,6 +302,36 @@ export function pageLabel(annotation: APIAnnotationData): string | undefined {
 }
 
 /**
+ * The page and surrounding prose of a PDF annotation, or `null` for a non-PDF one. The math
+ * OCR endpoint needs the page index and the clean prose prefix/suffix to locate the equation
+ * region; a PDF annotation carries a `PageSelector`, an HTML one does not.
+ */
+export function mathOcrRegion(annotation: APIAnnotationData): {
+  pageIndex: number;
+  prefix: string;
+  suffix: string;
+} | null {
+  const selector = annotation.target[0]?.selector;
+  if (!selector) {
+    return null;
+  }
+  const pageSel = selector.find(s => s.type === 'PageSelector') as
+    | PageSelector
+    | undefined;
+  const quoteSel = selector.find(s => s.type === 'TextQuoteSelector') as
+    | TextQuoteSelector
+    | undefined;
+  if (pageSel === undefined || quoteSel === undefined) {
+    return null;
+  }
+  return {
+    pageIndex: pageSel.index,
+    prefix: quoteSel.prefix ?? '',
+    suffix: quoteSel.suffix ?? '',
+  };
+}
+
+/**
  * Has this annotation been edited subsequent to its creation?
  */
 export function hasBeenEdited(annotation: Annotation): boolean {

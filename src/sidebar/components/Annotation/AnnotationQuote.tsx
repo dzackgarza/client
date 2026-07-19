@@ -4,7 +4,12 @@ import classnames from 'classnames';
 import { useEffect, useState } from 'preact/hooks';
 
 import type { SidebarSettings } from '../../../types/config';
-import { cleanMathQuote, hasGarbledMath } from '../../helpers/math-quote';
+import {
+  cleanMathQuote,
+  hasGarbledMath,
+  ocrMathQuote,
+  pdfHasMath,
+} from '../../helpers/math-quote';
 import { applyTheme } from '../../helpers/theme';
 import { withServices } from '../../service-context';
 import InlineControlExcerpt from '../InlineControlExcerpt';
@@ -13,6 +18,11 @@ type AnnotationQuoteProps = {
   quote: string;
   /** URL of the annotated document, used to recover LaTeX for math quotes. */
   uri?: string;
+  /**
+   * Page + surrounding prose for a PDF annotation, used to OCR a math quote's region at
+   * display time. `null`/absent for HTML annotations (which recover from the page's x-tex).
+   */
+  pdfRegion?: { pageIndex: number; prefix: string; suffix: string } | null;
   isHovered?: boolean;
   isOrphan?: boolean;
   settings: SidebarSettings;
@@ -29,23 +39,38 @@ type AnnotationQuoteProps = {
 function AnnotationQuote({
   quote,
   uri,
+  pdfRegion,
   isHovered,
   isOrphan,
   settings,
 }: AnnotationQuoteProps) {
-  const needsMath = hasGarbledMath(quote);
+  // HTML math recovers from the page's x-tex layer; PDF math has no such layer and is OCR'd
+  // via the region endpoint. Both only change what is displayed, never the annotation.
+  const needsHtmlMath = hasGarbledMath(quote);
+  const needsPdfMath =
+    !needsHtmlMath && !!uri && !!pdfRegion && pdfHasMath(quote);
   const [mathQuote, setMathQuote] = useState<string | null>(null);
-  const [converting, setConverting] = useState(needsMath && !!uri);
+  const [converting, setConverting] = useState(
+    (needsHtmlMath && !!uri) || needsPdfMath,
+  );
 
   useEffect(() => {
-    if (!needsMath || !uri) {
+    if (!uri) {
       return () => {};
     }
     let cancelled = false;
+    let recovered: Promise<string | null>;
+    if (needsHtmlMath) {
+      recovered = cleanMathQuote(uri, quote);
+    } else if (needsPdfMath && pdfRegion) {
+      recovered = ocrMathQuote({ uri, ...pdfRegion, exact: quote });
+    } else {
+      return () => {};
+    }
     setConverting(true);
-    cleanMathQuote(uri, quote)
+    recovered
       .then(clean => {
-        if (!cancelled) {
+        if (!cancelled && clean !== null) {
           setMathQuote(clean);
         }
       })
@@ -58,7 +83,15 @@ function AnnotationQuote({
     return () => {
       cancelled = true;
     };
-  }, [needsMath, uri, quote]);
+  }, [
+    needsHtmlMath,
+    needsPdfMath,
+    uri,
+    quote,
+    pdfRegion?.pageIndex,
+    pdfRegion?.prefix,
+    pdfRegion?.suffix,
+  ]);
 
   return (
     <InlineControlExcerpt collapsedHeight={35} overflowThreshold={20}>

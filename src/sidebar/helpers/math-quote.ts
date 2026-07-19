@@ -74,3 +74,44 @@ export async function cleanMathQuote(uri: string, quote: string): Promise<string
   }
   return out;
 }
+
+// ponytail: hardcoded local OCR endpoint for the PDF path -- promote to a client config
+// field (settings.ocrUrl) once the mechanism is verified.
+const OCR_ENDPOINT = 'http://localhost:8901/ocr';
+
+/**
+ * Does this PDF quote likely span math? Greek letters and math operators survive a PDF
+ * text-layer selection as ordinary Unicode (unlike the Mathematical Alphanumeric block of an
+ * HTML `<math>` capture that {@link hasGarbledMath} detects), so they are the PDF signal.
+ */
+export function pdfHasMath(quote: string): boolean {
+  return /[Ͱ-Ͽ∀-⋿⨀-⫿⟰-⟿←-⇿]/u.test(quote);
+}
+
+/**
+ * Recover clean `\(..\)` LaTeX for a PDF math region by asking the local OCR endpoint. A PDF
+ * page has no x-tex layer, so OCR (server-side, holds the Mathpix key) is the only source of
+ * clean math; the client posts the region here at render time. Returns `null` when nothing is
+ * recovered. The stored annotation is never touched.
+ */
+export async function ocrMathQuote(req: {
+  uri: string;
+  pageIndex: number;
+  prefix: string;
+  suffix: string;
+  exact: string;
+}): Promise<string | null> {
+  const res = await fetch(OCR_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      uri: req.uri,
+      page_index: req.pageIndex,
+      prefix: req.prefix,
+      suffix: req.suffix,
+      exact: req.exact,
+    }),
+  });
+  const data = (await res.json()) as { latex: string | null };
+  return data.latex;
+}
