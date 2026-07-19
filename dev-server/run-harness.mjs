@@ -6,5 +6,7 @@ import { servePackage } from './serve-package.js';
 servePackage(3011);
 serveDev(3012, {
   clientUrl: '//{current_host}:3011/hypothesis',
+  // NB: oauthClientId is NOT a host-page config key (hostPageConfig allowlist filters it
+  // out); it is a sidebar-app setting, set in dev-server/static/fork-app.html instead.
   clientConfig: {},
 });
