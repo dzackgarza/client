@@ -13,7 +13,6 @@ import {
   isOrphan,
   isSaved,
   description,
-  mathOcrRegion,
   quote,
   shape,
 } from '../../helpers/annotation-metadata';
@@ -153,8 +152,6 @@ function Annotation({
         <AnnotationQuote
           quote={annotationQuote}
           normalizedQuote={annotation.normalized_quote}
-          uri={annotation.uri}
-          pdfRegion={mathOcrRegion(annotation)}
           isHovered={isHovered}
           isOrphan={isOrphan(annotation)}
         />
