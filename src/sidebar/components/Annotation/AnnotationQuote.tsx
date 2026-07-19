@@ -44,12 +44,20 @@ function AnnotationQuote({
   isOrphan,
   settings,
 }: AnnotationQuoteProps) {
-  // HTML math recovers from the page's x-tex layer; PDF math has no such layer and is OCR'd
-  // via the configured endpoint. Both only change what is displayed, never the annotation.
+  // Math recovery consults the live document (its `<span class="math">` source or, for PDFs, the
+  // OCR endpoint) to render the quote's math. That is only sound for an annotation Hypothesis has
+  // anchored to *this* version of the page. An orphan was made on a previous version — Hypothesis
+  // already flags it as such; recovery must not go re-matching it against the changed page (it would
+  // silently degrade or, worse, reconstruct from a different occurrence). Leave orphans untouched.
   const ocrUrl = settings.ocrUrl;
-  const needsHtmlMath = mightSpanMath(quote);
+  const needsHtmlMath = !isOrphan && mightSpanMath(quote);
   const needsPdfMath =
-    !needsHtmlMath && !!uri && !!pdfRegion && !!ocrUrl && pdfHasMath(quote);
+    !isOrphan &&
+    !needsHtmlMath &&
+    !!uri &&
+    !!pdfRegion &&
+    !!ocrUrl &&
+    pdfHasMath(quote);
   const [mathQuote, setMathQuote] = useState<string | null>(null);
   const [converting, setConverting] = useState(
     (needsHtmlMath && !!uri) || needsPdfMath,
