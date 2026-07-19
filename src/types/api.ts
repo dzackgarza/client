@@ -301,16 +301,6 @@ export type APIAnnotationData = {
    */
   normalized_quote?: string;
 
-  /**
-   * Status of the server-side math enrichment for this annotation: `pending` while it is
-   * still being recovered, `ready` once `normalized_quote` is final, `failed` if recovery
-   * errored (a retry is offered). Absent on older annotations that predate enrichment.
-   */
-  normalization_status?: 'pending' | 'ready' | 'failed';
-
-  /** When `normalization_status` is `failed`, the reason (for display / a retry affordance). */
-  normalization_error?: string;
-
   document: {
     title: string;
   };

@@ -42,44 +42,6 @@ describe('AnnotationQuote', () => {
     assert.equal(quote.text(), 'test quote');
   });
 
-  it('renders a spinner while normalization is pending', () => {
-    const wrapper = createQuote({ normalizationStatus: 'pending' });
-
-    assert.isTrue(wrapper.exists('[data-testid="normalization-pending"]'));
-    assert.isFalse(wrapper.exists('blockquote'));
-  });
-
-  it('renders an error with a retry when normalization failed', () => {
-    const onRetry = sinon.stub();
-    const wrapper = createQuote({
-      normalizationStatus: 'failed',
-      normalizationError: 'html-normalize failed: fetch failed',
-      onRetry,
-    });
-
-    assert.isTrue(wrapper.exists('[data-testid="normalization-failed"]'));
-    assert.isFalse(wrapper.exists('blockquote'));
-
-    wrapper.find('Button[data-testid="normalization-retry"]').props().onClick();
-    assert.calledOnce(onRetry);
-  });
-
-  it('omits the retry control when there is no retry handler', () => {
-    const wrapper = createQuote({ normalizationStatus: 'failed' });
-
-    assert.isTrue(wrapper.exists('[data-testid="normalization-failed"]'));
-    assert.isFalse(wrapper.exists('[data-testid="normalization-retry"]'));
-  });
-
-  it('renders the stored quote when normalization is ready', () => {
-    const wrapper = createQuote({
-      normalizationStatus: 'ready',
-      normalizedQuote: 'recovered $x$',
-    });
-
-    assert.equal(wrapper.find('blockquote').text(), 'recovered $x$');
-  });
-
   it('applies selectionFontFamily styling from settings', () => {
     fakeApplyTheme
       .withArgs(sinon.match.array.deepEquals(['selectionFontFamily']))

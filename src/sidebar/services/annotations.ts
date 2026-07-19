@@ -251,18 +251,6 @@ export class AnnotationsService {
   }
 
   /**
-   * Re-run server-side math normalization for an annotation whose enrichment failed.
-   *
-   * The API resets the annotation to `pending` and re-enqueues the work; the returned
-   * annotation (now pending) is merged into the store so the sidebar shows a spinner until
-   * the worker finishes.
-   */
-  async retryNormalization(annotation: SavedAnnotation) {
-    const updated = await this._api.annotation.normalize({ id: annotation.id });
-    this._store.addAnnotations([updated]);
-  }
-
-  /**
    * Create a reply to `annotation` by the user `userid` and add to the store.
    */
   reply(annotation: SavedAnnotation, userid: string) {
