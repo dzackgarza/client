@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>PDF (arxiv) OCR math quote render test</title>
+    <!-- Claim to be the arXiv PDF so the client associates the PDF-style annotation
+         (page selector + flattened math quote) and the OCR path resolves this URL. -->
+    <link rel="canonical" href="https://arxiv.org/pdf/2312.03638" />
+  </head>
+  <body style="font: 18px/1.7 Georgia, serif; max-width: 42em; margin: 3em auto">
+    <h1>arXiv PDF OCR math quote render test</h1>
+    <!-- The exact flattened text-layer capture, so the PDF-style annotation ANCHORS here
+         (not an orphan) and the sidebar runs its OCR recovery path. -->
+    <p>Enriques surfaces are quotients of K3 surfaces by basepoint free involutions. They satisfy 2K ∼ 0 and q = 0 and occupy a place somewhere in between rational and K3 surfaces. Unlike K3 surfaces, there are only finitely many moduli spaces of polarized Enriques surfaces, see [GH16]. Each of them parameterizes the same surfaces, with some finite data attached.</p>
+
+    <script class="js-hypothesis-config" type="application/json">
+      {"assetRoot": "http://localhost:3011/hypothesis/1.0.0-dummy-version/", "sidebarAppUrl": "http://localhost:3012/fork-app.html", "apiUrl": "http://localhost:5000/api/", "authDomain": "localhost", "openSidebar": true, "ocrUrl": "http://localhost:8901/ocr"}
+    </script>
+    {{{ hypothesisScript }}}
+  </body>
+</html>
