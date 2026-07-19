@@ -217,6 +217,7 @@ export class APIService {
     hide: APICall<IDParam>;
     unhide: APICall<IDParam>;
     moderate: APICall<IDParam, AnnotationModeration, Annotation>;
+    normalize: APICall<IDParam, void, Annotation>;
   };
   group: {
     member: {
@@ -295,6 +296,11 @@ export class APIService {
       flag: apiCall('annotation.flag') as APICall<IDParam>,
       hide: apiCall('annotation.hide') as APICall<IDParam>,
       unhide: apiCall('annotation.unhide') as APICall<IDParam>,
+      normalize: apiCall('annotation.normalize') as APICall<
+        IDParam,
+        void,
+        Annotation
+      >,
       moderate: apiCall('annotation.moderate') as APICall<
         IDParam,
         AnnotationModeration,

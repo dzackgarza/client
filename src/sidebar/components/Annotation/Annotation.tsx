@@ -19,6 +19,7 @@ import {
 import { annotationDisplayName } from '../../helpers/annotation-user';
 import { withServices } from '../../service-context';
 import type { AnnotationsService } from '../../services/annotations';
+import type { ToastMessengerService } from '../../services/toast-messenger';
 import { useSidebarStore } from '../../store';
 import ModerationControl from '../moderation/ModerationControl';
 import AnnotationActionBar from './AnnotationActionBar';
@@ -67,6 +68,7 @@ export type AnnotationProps = {
 
   // injected
   annotationsService: AnnotationsService;
+  toastMessenger: ToastMessengerService;
   settings: SidebarSettings;
 };
 
@@ -82,6 +84,7 @@ function Annotation({
   replyCount,
   threadIsCollapsed,
   annotationsService,
+  toastMessenger,
   settings,
 }: AnnotationProps) {
   const store = useSidebarStore();
@@ -106,6 +109,18 @@ function Annotation({
   const onReply = () => {
     if (isSaved(annotation) && userid) {
       annotationsService.reply(annotation, userid);
+    }
+  };
+
+  const onRetryNormalization = async () => {
+    if (!isSaved(annotation)) {
+      return;
+    }
+    try {
+      await annotationsService.retryNormalization(annotation);
+      toastMessenger.notice('Re-running math recovery…');
+    } catch {
+      toastMessenger.error('Could not retry math recovery');
     }
   };
 
@@ -152,6 +167,9 @@ function Annotation({
         <AnnotationQuote
           quote={annotationQuote}
           normalizedQuote={annotation.normalized_quote}
+          normalizationStatus={annotation.normalization_status}
+          normalizationError={annotation.normalization_error}
+          onRetry={isSaved(annotation) ? onRetryNormalization : undefined}
           isHovered={isHovered}
           isOrphan={isOrphan(annotation)}
         />
@@ -193,4 +211,8 @@ function Annotation({
   );
 }
 
-export default withServices(Annotation, ['annotationsService', 'settings']);
+export default withServices(Annotation, [
+  'annotationsService',
+  'toastMessenger',
+  'settings',
+]);

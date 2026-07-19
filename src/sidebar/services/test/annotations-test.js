@@ -46,6 +46,7 @@ describe('AnnotationsService', () => {
         flag: sinon.stub().resolves(),
         update: sinon.stub().resolves(fixtures.defaultAnnotation()),
         moderate: sinon.stub().resolves(fixtures.defaultAnnotation()),
+        normalize: sinon.stub().resolves(fixtures.defaultAnnotation()),
       },
     };
 
@@ -387,6 +388,27 @@ describe('AnnotationsService', () => {
       await svc.flag(annot);
       assert.calledOnce(fakeAnnotationActivity.reportActivity);
       assert.calledWith(fakeAnnotationActivity.reportActivity, 'flag', annot);
+    });
+  });
+
+  describe('retryNormalization', () => {
+    it('re-enqueues normalization and merges the returned annotation', async () => {
+      const annot = fixtures.defaultAnnotation();
+      const updated = { ...annot, normalization_status: 'pending' };
+      fakeApi.annotation.normalize.resolves(updated);
+
+      await svc.retryNormalization(annot);
+
+      assert.calledWith(fakeApi.annotation.normalize, { id: annot.id });
+      assert.calledWith(fakeStore.addAnnotations, [updated]);
+    });
+
+    it('does not update the store if the API call fails', async () => {
+      fakeApi.annotation.normalize.rejects(new Error('nope'));
+      const annot = fixtures.defaultAnnotation();
+
+      await assert.rejects(svc.retryNormalization(annot), 'nope');
+      assert.notCalled(fakeStore.addAnnotations);
     });
   });
 

@@ -15,6 +15,7 @@ describe('Annotation', () => {
 
   // Injected dependency mocks
   let fakeAnnotationsService;
+  let fakeToastMessenger;
   let fakeStore;
 
   const setEditingMode = (isEditing = true) => {
@@ -31,6 +32,7 @@ describe('Annotation', () => {
       <Annotation
         annotation={fixtures.defaultAnnotation()}
         annotationsService={fakeAnnotationsService}
+        toastMessenger={fakeToastMessenger}
         isReply={false}
         replyCount={0}
         threadIsCollapsed={true}
@@ -44,6 +46,12 @@ describe('Annotation', () => {
     fakeAnnotationsService = {
       reply: sinon.stub(),
       save: sinon.stub().resolves(),
+      retryNormalization: sinon.stub().resolves(),
+    };
+
+    fakeToastMessenger = {
+      notice: sinon.stub(),
+      error: sinon.stub(),
     };
 
     fakeAnnotationUser = {
