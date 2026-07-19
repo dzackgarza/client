@@ -190,6 +190,9 @@ export type ConfigFromHost = {
   /** Whether to show highlights. */
   showHighlights?: boolean;
 
+  /** Endpoint that OCRs a PDF math quote's region at display time (see AnnotationQuote). */
+  ocrUrl?: string;
+
   /** Theme properties (fonts, colors etc.) */
   branding?: Record<ThemeProperty, string>;
 

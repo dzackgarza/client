@@ -55,6 +55,9 @@ export function hostPageConfig(window: Window): ConfigFromAnnotator {
     'usernameUrl',
     'commentsMode',
     'groupsAllowlist',
+
+    // Endpoint that OCRs a PDF math quote's region at display time (see AnnotationQuote).
+    'ocrUrl',
   ];
 
   // We need to coerce incoming values from the host config for 2 reasons:

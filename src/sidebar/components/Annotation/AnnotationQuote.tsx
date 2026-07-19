@@ -45,10 +45,11 @@ function AnnotationQuote({
   settings,
 }: AnnotationQuoteProps) {
   // HTML math recovers from the page's x-tex layer; PDF math has no such layer and is OCR'd
-  // via the region endpoint. Both only change what is displayed, never the annotation.
+  // via the configured endpoint. Both only change what is displayed, never the annotation.
+  const ocrUrl = settings.ocrUrl;
   const needsHtmlMath = hasGarbledMath(quote);
   const needsPdfMath =
-    !needsHtmlMath && !!uri && !!pdfRegion && pdfHasMath(quote);
+    !needsHtmlMath && !!uri && !!pdfRegion && !!ocrUrl && pdfHasMath(quote);
   const [mathQuote, setMathQuote] = useState<string | null>(null);
   const [converting, setConverting] = useState(
     (needsHtmlMath && !!uri) || needsPdfMath,
@@ -62,8 +63,8 @@ function AnnotationQuote({
     let recovered: Promise<string | null>;
     if (needsHtmlMath) {
       recovered = cleanMathQuote(uri, quote);
-    } else if (needsPdfMath && pdfRegion) {
-      recovered = ocrMathQuote({ uri, ...pdfRegion, exact: quote });
+    } else if (needsPdfMath && pdfRegion && ocrUrl) {
+      recovered = ocrMathQuote(ocrUrl, { uri, ...pdfRegion, exact: quote });
     } else {
       return () => {};
     }
@@ -86,6 +87,7 @@ function AnnotationQuote({
   }, [
     needsHtmlMath,
     needsPdfMath,
+    ocrUrl,
     uri,
     quote,
     pdfRegion?.pageIndex,
