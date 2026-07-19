@@ -293,6 +293,14 @@ export type APIAnnotationData = {
   user: string;
   hidden: boolean;
 
+  /**
+   * The selection with rendered math recovered, produced at intake and stored server-side
+   * (see h's AnnotationNormalized). Views display this; the raw quote in `target` selectors
+   * is used only for anchoring. Equal to the raw quote when the selection spans no math, and
+   * absent on older annotations not yet enriched.
+   */
+  normalized_quote?: string;
+
   document: {
     title: string;
   };

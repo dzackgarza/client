@@ -152,6 +152,7 @@ function Annotation({
       {annotationQuote && (
         <AnnotationQuote
           quote={annotationQuote}
+          normalizedQuote={annotation.normalized_quote}
           uri={annotation.uri}
           pdfRegion={mathOcrRegion(annotation)}
           isHovered={isHovered}
