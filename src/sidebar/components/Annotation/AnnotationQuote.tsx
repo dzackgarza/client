@@ -49,15 +49,15 @@ function AnnotationQuote({
   // anchored to *this* version of the page. An orphan was made on a previous version — Hypothesis
   // already flags it as such; recovery must not go re-matching it against the changed page (it would
   // silently degrade or, worse, reconstruct from a different occurrence). Leave orphans untouched.
+  // A PDF annotation (identified by its page-anchored region) has no math markup to read, so it
+  // takes the OCR path; an HTML annotation reconstructs from the page's math-span source. These are
+  // mutually exclusive by document type — never let the HTML detector, which also fires on bare math
+  // operators, shadow the PDF path.
   const ocrUrl = settings.ocrUrl;
-  const needsHtmlMath = !isOrphan && mightSpanMath(quote);
+  const isPdf = !!pdfRegion;
+  const needsHtmlMath = !isOrphan && !isPdf && mightSpanMath(quote);
   const needsPdfMath =
-    !isOrphan &&
-    !needsHtmlMath &&
-    !!uri &&
-    !!pdfRegion &&
-    !!ocrUrl &&
-    pdfHasMath(quote);
+    !isOrphan && isPdf && !!uri && !!ocrUrl && pdfHasMath(quote);
   const [mathQuote, setMathQuote] = useState<string | null>(null);
   const [converting, setConverting] = useState(
     (needsHtmlMath && !!uri) || needsPdfMath,
