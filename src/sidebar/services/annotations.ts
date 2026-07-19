@@ -36,6 +36,36 @@ export type MentionsOptions =
     };
 
 /**
+ * Max time to wait for a save (create/update) request to resolve. The backend
+ * normalizes math synchronously inside the create request, so a save can take
+ * noticeably longer than a plain write; exceeding this is treated as a failure
+ * (the editor is restored with the draft intact and a toast is shown).
+ */
+export const SAVE_TIMEOUT = 30_000;
+
+/**
+ * Reject with `message` if `promise` has not settled within `ms`. The timer is
+ * cleared as soon as `promise` settles so it never lingers.
+ *
+ * ponytail: on timeout the in-flight request is left to resolve into nothing
+ * rather than aborted — harmless for this UX; wire an AbortController if a
+ * dangling request ever matters.
+ */
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  message: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() =>
+    clearTimeout(timer),
+  ) as Promise<T>;
+}
+
+/**
  * A service for creating, updating and persisting annotations both in the
  * local store and on the backend via the API.
  */
@@ -297,7 +327,11 @@ export class AnnotationsService {
     let savedAnnotation: Annotation;
     this._store.annotationSaveStarted(annotation);
     try {
-      savedAnnotation = await saved;
+      savedAnnotation = await withTimeout(
+        saved,
+        SAVE_TIMEOUT,
+        'Saving annotation timed out',
+      );
       this._activity.reportActivity(eventType, savedAnnotation);
     } finally {
       this._store.annotationSaveFinished(annotation);
