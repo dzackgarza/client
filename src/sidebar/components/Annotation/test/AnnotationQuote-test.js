@@ -42,6 +42,23 @@ describe('AnnotationQuote', () => {
     assert.equal(quote.text(), 'test quote');
   });
 
+  it('shows the backend description and never the raw quote when normalization is missing', () => {
+    const wrapper = createQuote({
+      normalizedQuote: '',
+      normalizationError: {
+        code: 'math_normalization_missing',
+        description: 'This annotation has no normalized quote.',
+        retryable: false,
+      },
+    });
+
+    assert.equal(
+      wrapper.find('[role="alert"]').text(),
+      'This annotation has no normalized quote.',
+    );
+    assert.notInclude(wrapper.text(), 'test quote');
+  });
+
   it('applies selectionFontFamily styling from settings', () => {
     fakeApplyTheme
       .withArgs(sinon.match.array.deepEquals(['selectionFontFamily']))
