@@ -280,6 +280,22 @@ describe('AnnotationEditor', () => {
       );
     });
 
+    it('shows the description of a save timeout', async () => {
+      fakeAnnotationsService.save.rejects(
+        new Error('Saving annotation timed out'),
+      );
+
+      const wrapper = createComponent();
+
+      wrapper.find('AnnotationPublishControl').props().onSave();
+
+      await waitFor(() => fakeToastMessenger.error.called);
+      assert.calledWith(
+        fakeToastMessenger.error,
+        'Saving annotation failed: Saving annotation timed out',
+      );
+    });
+
     it('should save annotation if `CTRL+Enter` is typed', () => {
       const draft = fixtures.defaultDraft();
       // Need some content so that it won't evaluate as "empty" and not save
