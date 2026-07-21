@@ -143,6 +143,7 @@ function Annotation({
         <AnnotationQuote
           quote={annotationQuote}
           normalizedQuote={annotation.normalized_quote}
+          normalizationError={annotation.normalization_error}
           isHovered={isHovered}
           isOrphan={isOrphan(annotation)}
         />

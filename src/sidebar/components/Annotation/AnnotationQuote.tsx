@@ -11,10 +11,15 @@ type AnnotationQuoteProps = {
   /**
    * The selection with rendered math recovered, produced once at intake and stored server-side
    * (h's AnnotationNormalized), joined into the annotation. This is what is displayed; it is the
-   * raw quote when the selection spans no math. Absent only for annotations predating enrichment,
-   * where the raw quote is shown instead.
+   * raw quote when the selection spans no math. Empty for a legacy annotation whose
+   * normalization is missing; `normalizationError` is displayed instead.
    */
   normalizedQuote?: string;
+  normalizationError?: {
+    code: string;
+    description: string;
+    retryable: boolean;
+  };
   isHovered?: boolean;
   isOrphan?: boolean;
   settings: SidebarSettings;
@@ -31,10 +36,22 @@ type AnnotationQuoteProps = {
 function AnnotationQuote({
   quote,
   normalizedQuote,
+  normalizationError,
   isHovered,
   isOrphan,
   settings,
 }: AnnotationQuoteProps) {
+  if (normalizationError) {
+    return (
+      <p
+        className="border-l-4 border-l-red-error bg-red-light px-3 py-2 text-sm text-red-dark"
+        role="alert"
+      >
+        {normalizationError.description}
+      </p>
+    );
+  }
+
   const displayed = normalizedQuote ?? quote;
   return (
     <InlineControlExcerpt collapsedHeight={35} overflowThreshold={20}>
