@@ -277,6 +277,7 @@ describe('AnnotationEditor', () => {
       assert.calledWith(
         fakeToastMessenger.error,
         'Saving annotation failed: Network request failed (500): Normalization failed',
+        { autoDismiss: false },
       );
     });
 
@@ -293,6 +294,7 @@ describe('AnnotationEditor', () => {
       assert.calledWith(
         fakeToastMessenger.error,
         'Saving annotation failed: Saving annotation timed out',
+        { autoDismiss: false },
       );
     });
 
