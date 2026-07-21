@@ -227,7 +227,9 @@ function AnnotationEditor({
       if (!(error instanceof Error)) {
         throw error;
       }
-      toastMessenger.error(`Saving annotation failed: ${error.message}`);
+      toastMessenger.error(`Saving annotation failed: ${error.message}`, {
+        autoDismiss: false,
+      });
     }
   };
 
