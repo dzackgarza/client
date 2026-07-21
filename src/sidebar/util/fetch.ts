@@ -11,6 +11,10 @@ export class FetchError extends Error {
   url: string;
   response: Response | null;
   reason: string;
+  code?: string;
+  description?: string;
+  retryable?: boolean;
+  diagnosticID?: string;
 
   /**
    * @param url - The URL that was requested. This may be different than the
@@ -20,19 +24,41 @@ export class FetchError extends Error {
    * @param reason - Additional details about the error. This might include
    *   context of the network request or a server-provided error in the response.
    */
-  constructor(url: string, response: Response | null, reason = '') {
+  constructor(
+    url: string,
+    response: Response | null,
+    reason = '',
+    details: {
+      code?: string;
+      description?: string;
+      retryable?: boolean;
+      diagnosticID?: string;
+    } = {},
+  ) {
     let message = 'Network request failed';
     if (response) {
       message += ` (${response.status})`;
     }
-    if (reason) {
+    if (details.description) {
+      message += `: ${details.description}`;
+      if (reason) {
+        message += ` Technical detail: ${reason}.`;
+      }
+    } else if (reason) {
       message += `: ${reason}`;
+    }
+    if (details.diagnosticID) {
+      message += ` Diagnostic ID: ${details.diagnosticID}`;
     }
     super(message);
 
     this.url = url;
     this.response = response;
     this.reason = reason;
+    this.code = details.code;
+    this.description = details.description;
+    this.retryable = details.retryable;
+    this.diagnosticID = details.diagnosticID;
   }
 }
 
@@ -78,7 +104,12 @@ export async function fetchJSON(
   // reason from the response, assuming certain conventions for the formatting
   // of error responses.
   if (!response.ok) {
-    throw new FetchError(url, response, data?.reason);
+    throw new FetchError(url, response, data?.reason, {
+      code: data?.code,
+      description: data?.description,
+      retryable: data?.retryable,
+      diagnosticID: data?.diagnostic_id,
+    });
   }
 
   return data;
