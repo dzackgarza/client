@@ -8,6 +8,7 @@ import { act } from 'preact/test-utils';
 import sinon from 'sinon';
 
 import * as fixtures from '../../../test/annotation-fixtures';
+import { FetchError } from '../../../util/fetch';
 import AnnotationEditor, { $imports } from '../AnnotationEditor';
 
 describe('AnnotationEditor', () => {
@@ -261,15 +262,22 @@ describe('AnnotationEditor', () => {
     });
 
     it('shows a toast message on error', async () => {
-      fakeAnnotationsService.save.throws();
+      const error = new FetchError(
+        'http://localhost:5000/api/annotations',
+        new Response('', { status: 500 }),
+        'Normalization failed',
+      );
+      fakeAnnotationsService.save.rejects(error);
 
       const wrapper = createComponent();
-
-      fakeAnnotationsService.save.rejects();
 
       wrapper.find('AnnotationPublishControl').props().onSave();
 
       await waitFor(() => fakeToastMessenger.error.called);
+      assert.calledWith(
+        fakeToastMessenger.error,
+        'Saving annotation failed: Network request failed (500): Normalization failed',
+      );
     });
 
     it('should save annotation if `CTRL+Enter` is typed', () => {
