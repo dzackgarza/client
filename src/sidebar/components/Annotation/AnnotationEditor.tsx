@@ -27,7 +27,6 @@ import type { TagsService } from '../../services/tags';
 import type { ToastMessengerService } from '../../services/toast-messenger';
 import { useSidebarStore } from '../../store';
 import type { Draft } from '../../store/modules/drafts';
-import { FetchError } from '../../util/fetch';
 import MarkdownEditor from '../MarkdownEditor';
 import TagEditor from '../TagEditor';
 import { useUnsavedChanges } from '../hooks/unsaved-changes';
@@ -225,9 +224,10 @@ function AnnotationEditor({
       toastMessenger.success(successMessage, { visuallyHidden: true });
       displayNameToUserMap.current = new Map();
     } catch (error) {
-      const reason =
-        error instanceof FetchError ? error.message : 'Unknown error';
-      toastMessenger.error(`Saving annotation failed: ${reason}`);
+      if (!(error instanceof Error)) {
+        throw error;
+      }
+      toastMessenger.error(`Saving annotation failed: ${error.message}`);
     }
   };
 
