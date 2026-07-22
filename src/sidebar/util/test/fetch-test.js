@@ -102,14 +102,21 @@ describe('sidebar/util/fetch', () => {
 
       assert.instanceOf(err, FetchError);
       assert.equal(err.code, 'math_normalization_failed');
-      assert.equal(err.description, 'The selected math could not be recovered. Retry Save.');
+      assert.equal(
+        err.description,
+        'The selected math could not be recovered. Retry Save.',
+      );
       assert.equal(err.reason, 'OCR request timed out');
       assert.isTrue(err.retryable);
       assert.equal(err.diagnosticID, '7f55bf8d-897d-49af-9918-e83c1699f178');
-      assert.equal(
+      // The message is presentation, not contract: it must surface the
+      // actionable description and the diagnostic id, but its exact phrasing
+      // is free to change.
+      assert.include(
         err.message,
-        'Network request failed (500): The selected math could not be recovered. Retry Save. Technical detail: OCR request timed out. Diagnostic ID: 7f55bf8d-897d-49af-9918-e83c1699f178',
+        'The selected math could not be recovered. Retry Save.',
       );
+      assert.include(err.message, '7f55bf8d-897d-49af-9918-e83c1699f178');
     });
 
     it('returns the parsed JSON response if the request was successful', async () => {

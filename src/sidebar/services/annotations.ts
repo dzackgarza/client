@@ -47,18 +47,23 @@ export const SAVE_TIMEOUT = 30_000;
  * Reject with `message` if `promise` has not settled within `ms`. The timer is
  * cleared as soon as `promise` settles so it never lingers.
  *
- * ponytail: on timeout the in-flight request is left to resolve into nothing
- * rather than aborted — harmless for this UX; wire an AbortController if a
- * dangling request ever matters.
+ * On timeout `onTimeout` runs first (the caller aborts the underlying request
+ * there, so no stale response can run callbacks later) and the losing
+ * promise's eventual abort rejection is explicitly consumed.
  */
 function withTimeout<T>(
   promise: Promise<T>,
   ms: number,
   message: string,
+  onTimeout: () => void,
 ): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   const timeout = new Promise<never>((_resolve, reject) => {
-    timer = setTimeout(() => reject(new Error(message)), ms);
+    timer = setTimeout(() => {
+      onTimeout();
+      promise.catch(() => {}); // the aborted request's rejection is expected
+      reject(new Error(message));
+    }, ms);
   });
   return Promise.race([promise, timeout]).finally(() =>
     clearTimeout(timer),
@@ -313,13 +318,19 @@ export class AnnotationsService {
       mentionsOptions,
     );
 
+    const abort = new AbortController();
     if (!metadata.isSaved(annotation)) {
-      saved = this._api.annotation.create({}, annotationWithChanges);
+      saved = this._api.annotation.create(
+        {},
+        annotationWithChanges,
+        abort.signal,
+      );
       eventType = 'create';
     } else {
       saved = this._api.annotation.update(
         { id: annotation.id },
         annotationWithChanges,
+        abort.signal,
       );
       eventType = 'update';
     }
@@ -331,6 +342,7 @@ export class AnnotationsService {
         saved,
         SAVE_TIMEOUT,
         'Saving annotation timed out',
+        () => abort.abort(),
       );
       this._activity.reportActivity(eventType, savedAnnotation);
     } finally {
