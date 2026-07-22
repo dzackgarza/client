@@ -692,6 +692,30 @@ describe('AnnotationsService', () => {
           clock.restore();
         }
       });
+
+      it('aborts the underlying request when the timeout fires', async () => {
+        // A timed-out save must cancel the in-flight network request: a stale
+        // response arriving later must not be able to run save callbacks.
+        const clock = sinon.useFakeTimers();
+        try {
+          fakeMetadata.isSaved.returns(true);
+          fakeApi.annotation.update.returns(new Promise(() => {}));
+
+          const saved = svc.save(fixtures.defaultAnnotation());
+          const rejection = assert.rejects(
+            saved,
+            'Saving annotation timed out',
+          );
+          await clock.tickAsync(SAVE_TIMEOUT);
+          await rejection;
+
+          const signal = fakeApi.annotation.update.lastCall.args[2];
+          assert.instanceOf(signal, AbortSignal);
+          assert.isTrue(signal.aborted);
+        } finally {
+          clock.restore();
+        }
+      });
     });
   });
 
