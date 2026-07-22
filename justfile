@@ -1,30 +1,25 @@
-# ai-review-ci Bun/TypeScript QC delegation justfile.
-# The central implementation lives in ~/ai-review-ci/justfiles/bun.just.
-# Public recipes delegate to that central justfile while preserving this repo as the caller root.
+# Native QC delegation justfile.
+# The client is a fork of upstream hypothesis/client and keeps upstream's native QC
+# (yarn: prettier, eslint, tsc, vitest). The ai-review-ci language gates do not apply to
+# this fork; only the AI review workflows run from .github/workflows/.
 
-# ai-review-ci contract variables consumed by doctor and workflow installers.
-ai_review_ci_schema_version := "1"
-ai_review_ci_profile := "bun"
-ai_review_ci_ref := "main"
-ai_review_ci_release_channel := "main"
-ai_review_ci_workflow_template_version := "1"
-ai_review_ci_local_delegation := "global-justfile"
-ai_review_ci_default_branch := "main"
 # List available recipes.
 default:
     @just --list
 
-# Run commit-tier Bun/TypeScript QC through the central implementation.
+# Commit-tier QC: formatting, lint, and types via upstream's yarn scripts.
 test-commit:
-    @just -f ~/ai-review-ci/justfiles/bun.just -d . test-commit
+    yarn checkformatting
+    yarn lint
+    yarn typecheck
 
-# Run the full Bun test suite before pushing.
-test-push:
-    @just -f ~/ai-review-ci/justfiles/bun.just -d . test-push
+# Push-tier QC: commit tier plus the full test suite.
+test-push: test-commit
+    yarn test
 
-# Run CI acceptance QC through the central implementation.
-test-ci:
-    @just -f ~/ai-review-ci/justfiles/bun.just -d . test-ci
+# CI-tier QC: push tier plus a production build.
+test-ci: test-push
+    yarn build
 
 [private]
 _test-editor:
