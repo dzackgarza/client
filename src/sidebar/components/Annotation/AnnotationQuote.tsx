@@ -7,12 +7,11 @@ import { withServices } from '../../service-context';
 import InlineControlExcerpt from '../InlineControlExcerpt';
 
 type AnnotationQuoteProps = {
-  quote: string;
   /**
    * The selection with rendered math recovered, produced once at intake and stored server-side
-   * (h's AnnotationNormalized), joined into the annotation. This is what is displayed; it is the
-   * raw quote when the selection spans no math. Empty for a legacy annotation whose
-   * normalization is missing; `normalizationError` is displayed instead.
+   * (h's AnnotationNormalized), joined into the annotation. This is the only text this
+   * component will display; it is identical to the captured quote when the selection spans
+   * no math.
    */
   normalizedQuote?: string;
   normalizationError?: {
@@ -34,25 +33,29 @@ type AnnotationQuoteProps = {
  * annotation's anchoring selectors are never involved in what is shown.
  */
 function AnnotationQuote({
-  quote,
   normalizedQuote,
   normalizationError,
   isHovered,
   isOrphan,
   settings,
 }: AnnotationQuoteProps) {
-  if (normalizationError) {
+  // A quote-bearing annotation without a normalized quote is a broken response, not a
+  // display choice: the raw TextQuoteSelector capture is never rendered as the quote
+  // (hypothesis-review#7). The backend normally supplies `normalization_error` itself;
+  // this branch also covers a payload that carries neither field.
+  if (normalizationError || !normalizedQuote) {
     return (
       <p
         className="border-l-4 border-l-red-error bg-red-light px-3 py-2 text-sm text-red-dark"
         role="alert"
       >
-        {normalizationError.description}
+        {normalizationError?.description ??
+          'This annotation has no server-normalized quote to display.'}
       </p>
     );
   }
 
-  const displayed = normalizedQuote ?? quote;
+  const displayed = normalizedQuote;
   return (
     <InlineControlExcerpt collapsedHeight={35} overflowThreshold={20}>
       <StyledText classes={classnames({ 'p-redacted-text': isOrphan })}>

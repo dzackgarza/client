@@ -141,7 +141,6 @@ function Annotation({
       )}
       {annotationQuote && !isSaving && (
         <AnnotationQuote
-          quote={annotationQuote}
           normalizedQuote={annotation.normalized_quote}
           normalizationError={annotation.normalization_error}
           isHovered={isHovered}
