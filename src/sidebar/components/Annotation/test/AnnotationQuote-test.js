@@ -50,6 +50,14 @@ describe('AnnotationQuote', () => {
     assert.notInclude(wrapper.text(), 'test quote');
   });
 
+  it('renders the live selection of an unsaved draft without an error state', () => {
+    // A draft has no server response yet; the reader composes against the raw
+    // selection, so the server-normalization contract does not apply to it.
+    const wrapper = createQuote({ draftQuote: 'freshly selected text' });
+    assert.isFalse(wrapper.find('[role="alert"]').exists());
+    assert.equal(wrapper.find('blockquote').text(), 'freshly selected text');
+  });
+
   it('renders an error and never the raw capture when normalized_quote is empty', () => {
     const wrapper = createQuote({ normalizedQuote: '' });
     assert.isTrue(wrapper.find('[role="alert"]').exists());

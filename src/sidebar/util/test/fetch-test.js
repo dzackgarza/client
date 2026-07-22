@@ -29,12 +29,10 @@ describe('sidebar/util/fetch', () => {
     it('throws a FetchError if `fetch` fails', async () => {
       window.fetch.rejects(new Error('Fetch failed'));
 
-      let err;
-      try {
-        await fetchJSON('https://example.com');
-      } catch (e) {
-        err = e;
-      }
+      const err = await fetchJSON('https://example.com').then(
+        () => assert.fail('fetchJSON should have rejected'),
+        e => e,
+      );
 
       assert.instanceOf(err, FetchError);
       assert.equal(err.url, 'https://example.com');
@@ -50,12 +48,10 @@ describe('sidebar/util/fetch', () => {
 
     it('throws a FetchError if parsing JSON response fails', async () => {
       fakeResponse.json.rejects(new Error('Oh no'));
-      let err;
-      try {
-        await fetchJSON('https://example.com');
-      } catch (e) {
-        err = e;
-      }
+      const err = await fetchJSON('https://example.com').then(
+        () => assert.fail('fetchJSON should have rejected'),
+        e => e,
+      );
       assert.instanceOf(err, FetchError);
       assert.equal(err.url, 'https://example.com');
       assert.equal(err.response, fakeResponse);
@@ -93,12 +89,10 @@ describe('sidebar/util/fetch', () => {
         diagnostic_id: '7f55bf8d-897d-49af-9918-e83c1699f178',
       });
 
-      let err;
-      try {
-        await fetchJSON('https://example.com');
-      } catch (e) {
-        err = e;
-      }
+      const err = await fetchJSON('https://example.com').then(
+        () => assert.fail('fetchJSON should have rejected'),
+        e => e,
+      );
 
       assert.instanceOf(err, FetchError);
       assert.equal(err.code, 'math_normalization_failed');
