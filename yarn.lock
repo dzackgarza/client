@@ -2718,7 +2718,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hypothesis/annotation-ui@npm:^1.0.2":
+"@hypothesis/annotation-ui@npm:1.1.0":
   version: 1.1.0
   resolution: "@hypothesis/annotation-ui@npm:1.1.0"
   peerDependencies:
@@ -8749,7 +8749,7 @@ __metadata:
     "@babel/preset-env": ^7.1.6
     "@babel/preset-react": ^7.0.0
     "@babel/preset-typescript": ^7.16.7
-    "@hypothesis/annotation-ui": ^1.0.2
+    "@hypothesis/annotation-ui": 1.1.0
     "@hypothesis/frontend-build": ^5.1.0
     "@hypothesis/frontend-shared": ^10.3.1
     "@hypothesis/frontend-testing": ^1.8.0

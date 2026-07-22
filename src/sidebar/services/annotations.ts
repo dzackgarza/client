@@ -61,7 +61,14 @@ function withTimeout<T>(
   const timeout = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(() => {
       onTimeout();
-      promise.catch(() => {}); // the aborted request's rejection is expected
+      // The abort we just triggered rejects the losing promise; that rejection
+      // is the expected outcome of cancelling and is consumed. Anything else is
+      // a real post-timeout failure and is reported rather than discarded.
+      promise.catch(err => {
+        if (err?.name !== 'AbortError') {
+          console.error('Save failed after timeout was reported', err);
+        }
+      });
       reject(new Error(message));
     }, ms);
   });
