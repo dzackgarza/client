@@ -121,10 +121,14 @@
     "test": "gulp test",
     "test:watch": "gulp test --live",
     "typecheck": "tsc --build tsconfig.json",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "prepack": "yarn build"
   },
   "packageManager": "yarn@3.6.0",
   "dependencies": {
     "mathjax-full": "^3.2.2"
-  }
+  },
+  "files": [
+    "build"
+  ]
 }
