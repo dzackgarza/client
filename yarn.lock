@@ -5206,13 +5206,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/katex@npm:^0.16.0":
-  version: 0.16.7
-  resolution: "@types/katex@npm:0.16.7"
-  checksum: 4fd15d93553be97c02c064e16be18d7ccbabf66ec72a9dc7fd5bfa47f0c7581da2f942f693c7cb59499de4c843c2189796e49c9647d336cbd52b777b6722a95a
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:*, @types/node@npm:^24.0.2":
   version: 24.10.1
   resolution: "@types/node@npm:24.10.1"
@@ -6650,13 +6643,6 @@ __metadata:
   version: 2.20.3
   resolution: "commander@npm:2.20.3"
   checksum: ab8c07884e42c3a8dbc5dd9592c606176c7eb5c1ca5ff274bcf907039b2c41de3626f684ea75ccf4d361ba004bbaff1f577d5384c155f3871e456bdf27becf9e
-  languageName: node
-  linkType: hard
-
-"commander@npm:^8.3.0":
-  version: 8.3.0
-  resolution: "commander@npm:8.3.0"
-  checksum: 0f82321821fc27b83bd409510bb9deeebcfa799ff0bf5d102128b500b7af22872c0c92cb6a0ebc5a4cf19c6b550fba9cedfa7329d18c6442a625f851377bacf0
   languageName: node
   linkType: hard
 
@@ -8783,7 +8769,6 @@ __metadata:
     "@types/chai": ^5.0.0
     "@types/dompurify": ^3.0.0
     "@types/escape-html": ^1.0.1
-    "@types/katex": ^0.16.0
     "@types/node": ^24.0.2
     "@types/retry": ^0.12.1
     "@types/scroll-into-view": ^1.16.0
@@ -8820,7 +8805,6 @@ __metadata:
     globals: ^16.0.0
     gulp: ^5.0.0
     gulp-changed: ^5.0.1
-    katex: ^0.16.0
     lodash.debounce: ^4.0.3
     mathjax-full: ^3.2.2
     mustache: ^4.0.1
@@ -9641,17 +9625,6 @@ __metadata:
   version: 6.0.2
   resolution: "just-diff@npm:6.0.2"
   checksum: 1a0c7524f640cb88ab013862733e710f840927834208fd3b85cbc5da2ced97acc75e7dcfe493268ac6a6514c51dd8624d2fd9d057050efba3c02b81a6dcb7ff9
-  languageName: node
-  linkType: hard
-
-"katex@npm:^0.16.0":
-  version: 0.16.27
-  resolution: "katex@npm:0.16.27"
-  dependencies:
-    commander: ^8.3.0
-  bin:
-    katex: cli.js
-  checksum: 8f14457ac48799a7c1b10254f0b2923ba75f6fcd4260834c2d9a67a213d3ef585dfe8faccf34c9ad84f40366554b0fbe6a3e67597b0a8754fd2faec32d0be953
   languageName: node
   linkType: hard
 

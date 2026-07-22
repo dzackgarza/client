@@ -64,7 +64,6 @@ function configurationKeys(context: Context): string[] {
       'usernameUrl',
       'commentsMode',
       'groupsAllowlist',
-      'ocrUrl',
     ],
     notebook: [
       'branding',
@@ -224,12 +223,6 @@ const configDefinitions: ConfigDefinitionMap = {
   },
   groupsAllowlist: {
     allowInBrowserExt: false,
-    getValue: getHostPageSetting,
-  },
-  // Endpoint that OCRs a PDF math quote's region at display time (see AnnotationQuote).
-  ocrUrl: {
-    allowInBrowserExt: true,
-    defaultValue: null,
     getValue: getHostPageSetting,
   },
 };
