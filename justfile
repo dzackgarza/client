@@ -1,0 +1,47 @@
+# ai-review-ci Bun/TypeScript QC delegation justfile.
+# The central implementation lives in ~/ai-review-ci/justfiles/bun.just.
+# Public recipes delegate to that central justfile while preserving this repo as the caller root.
+
+# ai-review-ci contract variables consumed by doctor and workflow installers.
+ai_review_ci_schema_version := "1"
+ai_review_ci_profile := "bun"
+ai_review_ci_ref := "main"
+ai_review_ci_release_channel := "main"
+ai_review_ci_workflow_template_version := "1"
+ai_review_ci_local_delegation := "global-justfile"
+ai_review_ci_default_branch := "main"
+# List available recipes.
+default:
+    @just --list
+
+# Run commit-tier Bun/TypeScript QC through the central implementation.
+test-commit:
+    @just -f ~/ai-review-ci/justfiles/bun.just -d . test-commit
+
+# Run the full Bun test suite before pushing.
+test-push:
+    @just -f ~/ai-review-ci/justfiles/bun.just -d . test-push
+
+# Run CI acceptance QC through the central implementation.
+test-ci:
+    @just -f ~/ai-review-ci/justfiles/bun.just -d . test-ci
+
+[private]
+_test-editor:
+    yarn test --grep AnnotationEditor-test
+
+[private]
+_test-save-errors:
+    yarn test --grep 'fetch-test|AnnotationEditor-test'
+
+[private]
+_test-annotation-quote:
+    yarn test --grep AnnotationQuote-test
+
+[private]
+_install-test-browser:
+    yarn playwright install chromium
+
+[private]
+_build:
+    yarn build
