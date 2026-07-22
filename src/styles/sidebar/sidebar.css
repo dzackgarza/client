@@ -177,3 +177,21 @@
 body {
   @apply font-sans text-base;
 }
+
+/* MathJax SVG output (annotation quotes/bodies; see the annotation-ui patch).
+   Tailwind's preflight sets `svg { display: block }`, which would break inline
+   formulas out of the surrounding sentence (dzackgarza/client#1). Scope the
+   correction to MathJax containers only: inline math flows with the text,
+   display math (mjx-container[display="true"]) stays its own centered block. */
+mjx-container[jax='SVG'] > svg {
+  display: inline;
+}
+mjx-container[jax='SVG'][display='true'] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+mjx-container[jax='SVG'][display='true'] > svg {
+  display: block;
+  margin: 0 auto;
+}
