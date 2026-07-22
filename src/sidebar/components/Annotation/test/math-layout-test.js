@@ -35,17 +35,47 @@ describe('MathJax layout under the production sidebar stylesheet', () => {
     });
   }
 
-  it('keeps inline math within the surrounding text flow', () => {
+  /** Laid-out box of a text node, so the formula can be located relative to its words. */
+  function textBox(node) {
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    return range.getBoundingClientRect();
+  }
+
+  it('lays inline math out as inline content between the words around it', () => {
     const wrapper = renderMarkdown('before $f(x)=2$ after');
     const para = wrapper.getDOMNode().querySelector('p');
-    const svg = para.querySelector('mjx-container svg');
-    assert.ok(svg, 'inline MathJax SVG rendered');
+    const [beforeText, container, afterText] = para.childNodes;
+    const svg = container.querySelector('svg');
 
-    assert.notEqual(
-      getComputedStyle(svg).display,
-      'block',
-      'inline math SVG must not be block-level',
+    // The property the requirement demands, stated positively: any other value —
+    // `block` (the preflight regression) or an invisible one — is a failure.
+    assert.equal(getComputedStyle(svg).display, 'inline');
+
+    // Observable consequence: the formula's box occupies the horizontal gap between
+    // "before" and "after" on the same line. A formula that is not laid out at all has
+    // a degenerate box that cannot separate the two words, and a block-level one pushes
+    // "after" back to the paragraph's left edge on a later line.
+    const beforeBox = textBox(beforeText);
+    const svgBox = svg.getBoundingClientRect();
+    const afterBox = textBox(afterText);
+
+    assert.isAtLeast(
+      svgBox.left,
+      beforeBox.right - 0.5,
+      'the formula starts where the preceding word ends',
     );
+    assert.isAtLeast(
+      afterBox.left,
+      svgBox.right - 0.5,
+      'the following word starts where the formula ends',
+    );
+    assert.isAbove(
+      svgBox.width,
+      0,
+      'the formula occupies horizontal space in the line',
+    );
+
     // "before", the formula, and "after" share one line: the paragraph is a
     // single text line high, not three.
     const lineHeight = parseFloat(getComputedStyle(para).lineHeight);
@@ -60,12 +90,16 @@ describe('MathJax layout under the production sidebar stylesheet', () => {
     const wrapper = renderMarkdown('before\n\n$$f(x)=2$$\n\nafter');
     const root = wrapper.getDOMNode();
     const container = root.querySelector('mjx-container[display="true"]');
-    assert.ok(container, 'display MathJax container rendered');
     const svg = container.querySelector('svg');
     assert.equal(
       getComputedStyle(svg).display,
       'block',
       'display math SVG stays block-level',
+    );
+    assert.isAbove(
+      svg.getBoundingClientRect().width,
+      0,
+      'the display formula occupies space on its own line',
     );
   });
 });
