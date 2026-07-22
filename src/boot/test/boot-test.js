@@ -26,11 +26,9 @@ describe('bootstrap', () => {
 
       // Sidebar app
       'scripts/sentry.bundle.js',
-      'scripts/katex.bundle.js',
       'scripts/showdown.bundle.js',
       'scripts/sidebar.bundle.js',
 
-      'styles/katex.min.css',
       'styles/sidebar.css',
     ];
 
@@ -166,7 +164,6 @@ describe('bootstrap', () => {
       runBoot('sidebar');
       const expectedAssets = [
         { src: assetURL('scripts/sidebar.bundle.1234.js'), type: 'module' },
-        { src: assetURL('styles/katex.min.1234.css'), type: 'stylesheet' },
         { src: assetURL('styles/sidebar.1234.css'), type: 'stylesheet' },
       ];
 

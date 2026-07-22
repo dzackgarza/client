@@ -29,12 +29,10 @@ describe('sidebar/util/fetch', () => {
     it('throws a FetchError if `fetch` fails', async () => {
       window.fetch.rejects(new Error('Fetch failed'));
 
-      let err;
-      try {
-        await fetchJSON('https://example.com');
-      } catch (e) {
-        err = e;
-      }
+      const err = await fetchJSON('https://example.com').then(
+        () => assert.fail('fetchJSON should have rejected'),
+        e => e,
+      );
 
       assert.instanceOf(err, FetchError);
       assert.equal(err.url, 'https://example.com');
@@ -50,12 +48,10 @@ describe('sidebar/util/fetch', () => {
 
     it('throws a FetchError if parsing JSON response fails', async () => {
       fakeResponse.json.rejects(new Error('Oh no'));
-      let err;
-      try {
-        await fetchJSON('https://example.com');
-      } catch (e) {
-        err = e;
-      }
+      const err = await fetchJSON('https://example.com').then(
+        () => assert.fail('fetchJSON should have rejected'),
+        e => e,
+      );
       assert.instanceOf(err, FetchError);
       assert.equal(err.url, 'https://example.com');
       assert.equal(err.response, fakeResponse);
@@ -81,6 +77,40 @@ describe('sidebar/util/fetch', () => {
         err.message,
         'Network request failed (404): Thing not found',
       );
+    });
+
+    it('preserves and displays structured API error details', async () => {
+      fakeResponse.status = 500;
+      fakeResponse.json.resolves({
+        code: 'math_normalization_failed',
+        description: 'The selected math could not be recovered. Retry Save.',
+        reason: 'OCR request timed out',
+        retryable: true,
+        diagnostic_id: '7f55bf8d-897d-49af-9918-e83c1699f178',
+      });
+
+      const err = await fetchJSON('https://example.com').then(
+        () => assert.fail('fetchJSON should have rejected'),
+        e => e,
+      );
+
+      assert.instanceOf(err, FetchError);
+      assert.equal(err.code, 'math_normalization_failed');
+      assert.equal(
+        err.description,
+        'The selected math could not be recovered. Retry Save.',
+      );
+      assert.equal(err.reason, 'OCR request timed out');
+      assert.isTrue(err.retryable);
+      assert.equal(err.diagnosticID, '7f55bf8d-897d-49af-9918-e83c1699f178');
+      // The message is presentation, not contract: it must surface the
+      // actionable description and the diagnostic id, but its exact phrasing
+      // is free to change.
+      assert.include(
+        err.message,
+        'The selected math could not be recovered. Retry Save.',
+      );
+      assert.include(err.message, '7f55bf8d-897d-49af-9918-e83c1699f178');
     });
 
     it('returns the parsed JSON response if the request was successful', async () => {

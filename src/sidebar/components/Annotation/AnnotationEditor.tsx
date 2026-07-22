@@ -223,8 +223,13 @@ function AnnotationEditor({
       );
       toastMessenger.success(successMessage, { visuallyHidden: true });
       displayNameToUserMap.current = new Map();
-    } catch {
-      toastMessenger.error('Saving annotation failed');
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        throw error;
+      }
+      toastMessenger.error(`Saving annotation failed: ${error.message}`, {
+        autoDismiss: false,
+      });
     }
   };
 

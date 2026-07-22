@@ -1,7 +1,7 @@
 import sinon from 'sinon';
 
 import * as fixtures from '../../test/annotation-fixtures';
-import { AnnotationsService, $imports } from '../annotations';
+import { AnnotationsService, SAVE_TIMEOUT, $imports } from '../annotations';
 
 describe('AnnotationsService', () => {
   let fakeAnnotationActivity;
@@ -666,6 +666,55 @@ describe('AnnotationsService', () => {
         return svc.save(fixtures.defaultAnnotation()).catch(() => {
           assert.notCalled(fakeStore.addAnnotations);
         });
+      });
+    });
+
+    context('save timeout', () => {
+      it('rejects and preserves the draft if the request exceeds the timeout', async () => {
+        const clock = sinon.useFakeTimers();
+        try {
+          fakeMetadata.isSaved.returns(true);
+          // A request that never settles on its own.
+          fakeApi.annotation.update.returns(new Promise(() => {}));
+
+          const saved = svc.save(fixtures.defaultAnnotation());
+          const rejection = assert.rejects(
+            saved,
+            'Saving annotation timed out',
+          );
+          await clock.tickAsync(SAVE_TIMEOUT);
+          await rejection;
+
+          assert.notCalled(fakeStore.removeDraft);
+          assert.notCalled(fakeStore.addAnnotations);
+          assert.calledOnce(fakeStore.annotationSaveFinished);
+        } finally {
+          clock.restore();
+        }
+      });
+
+      it('aborts the underlying request when the timeout fires', async () => {
+        // A timed-out save must cancel the in-flight network request: a stale
+        // response arriving later must not be able to run save callbacks.
+        const clock = sinon.useFakeTimers();
+        try {
+          fakeMetadata.isSaved.returns(true);
+          fakeApi.annotation.update.returns(new Promise(() => {}));
+
+          const saved = svc.save(fixtures.defaultAnnotation());
+          const rejection = assert.rejects(
+            saved,
+            'Saving annotation timed out',
+          );
+          await clock.tickAsync(SAVE_TIMEOUT);
+          await rejection;
+
+          const signal = fakeApi.annotation.update.lastCall.args[2];
+          assert.instanceOf(signal, AbortSignal);
+          assert.isTrue(signal.aborted);
+        } finally {
+          clock.restore();
+        }
       });
     });
   });

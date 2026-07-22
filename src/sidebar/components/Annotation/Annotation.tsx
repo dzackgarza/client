@@ -3,7 +3,6 @@ import {
   formatDateTime,
   Spinner,
 } from '@hypothesis/frontend-shared';
-import classnames from 'classnames';
 import { useMemo } from 'preact/hooks';
 
 import type { Annotation as IAnnotation } from '../../../types/api';
@@ -31,23 +30,15 @@ import AnnotationThumbnail from './AnnotationThumbnail';
 
 function SavingMessage() {
   return (
+    // The whole annotation mini-interface becomes this spinner while the save
+    // (which normalizes the quote synchronously on the server) is in flight:
+    // it blocks the editor, offers no cancel, and shows no raw quote.
     <div
-      className={classnames(
-        'flex grow justify-end items-center gap-x-1',
-        // Make sure height matches that of action-bar icons so that there
-        // isn't a height change when transitioning in and out of saving state
-        'h-8 touch:h-touch-minimum',
-      )}
+      className="flex items-center justify-center gap-x-2 py-8 text-color-text-light"
       data-testid="saving-message"
     >
-      <span
-        // Slowly fade in the Spinner such that it only shows up if the saving
-        // is slow
-        className="text-[16px] animate-fade-in-slow"
-      >
-        <Spinner size="sm" />
-      </span>
-      <div className="text-color-text-light font-medium">Saving...</div>
+      <Spinner size="md" />
+      <div className="font-medium">Saving...</div>
     </div>
   );
 }
@@ -148,15 +139,20 @@ function Annotation({
           showDescription={!isEditing}
         />
       )}
-      {annotationQuote && (
+      {annotationQuote && !isSaving && (
         <AnnotationQuote
           quote={annotationQuote}
+          isSaved={isSaved(annotation)}
+          normalizedQuote={annotation.normalized_quote}
+          normalizationError={annotation.normalization_error}
           isHovered={isHovered}
           isOrphan={isOrphan(annotation)}
         />
       )}
 
-      {!isCollapsedReply && !isEditing && (
+      {isSaving && <SavingMessage />}
+
+      {!isCollapsedReply && !isEditing && !isSaving && (
         <AnnotationBody annotation={annotation} />
       )}
 
@@ -180,7 +176,6 @@ function Annotation({
               />
             )}
           </div>
-          {isSaving && <SavingMessage />}
           {showActions && (
             <CardActions classes="grow">
               <AnnotationActionBar annotation={annotation} onReply={onReply} />

@@ -16,7 +16,7 @@
     "@babel/preset-env": "^7.1.6",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.16.7",
-    "@hypothesis/annotation-ui": "^1.0.2",
+    "@hypothesis/annotation-ui": "1.1.0",
     "@hypothesis/frontend-build": "^5.1.0",
     "@hypothesis/frontend-shared": "^10.3.1",
     "@hypothesis/frontend-testing": "^1.8.0",
@@ -36,7 +36,6 @@
     "@types/chai": "^5.0.0",
     "@types/dompurify": "^3.0.0",
     "@types/escape-html": "^1.0.1",
-    "@types/katex": "^0.16.0",
     "@types/node": "^24.0.2",
     "@types/retry": "^0.12.1",
     "@types/scroll-into-view": "^1.16.0",
@@ -73,13 +72,14 @@
     "globals": "^16.0.0",
     "gulp": "^5.0.0",
     "gulp-changed": "^5.0.1",
-    "katex": "^0.16.0",
     "lodash.debounce": "^4.0.3",
     "mustache": "^4.0.1",
     "mustache-express": "^1.3.2",
     "npm-packlist": "^10.0.0",
+    "patch-package": "^8.0.1",
     "playwright": "^1.51.1",
     "postcss": "^8.0.3",
+    "postinstall-postinstall": "^2.1.0",
     "preact": "^10.4.0",
     "preact-render-to-string": "^6.4.0",
     "prettier": "3.7.4",
@@ -120,7 +120,15 @@
     "format": "prettier --cache --list-different --write '**/*.{css,js,scss,ts,tsx,d.ts}'",
     "test": "gulp test",
     "test:watch": "gulp test --live",
-    "typecheck": "tsc --build tsconfig.json"
+    "typecheck": "tsc --build tsconfig.json",
+    "prepack": "yarn build",
+    "postinstall": "patch-package"
   },
-  "packageManager": "yarn@3.6.0"
+  "packageManager": "yarn@3.6.0",
+  "dependencies": {
+    "mathjax-full": "^3.2.2"
+  },
+  "files": [
+    "build"
+  ]
 }

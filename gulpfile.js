@@ -6,7 +6,6 @@ import {
   watchJS,
 } from '@hypothesis/frontend-build';
 import gulp from 'gulp';
-import changed from 'gulp-changed';
 
 import { serveDev } from './dev-server/serve-dev.js';
 import { servePackage } from './dev-server/serve-package.js';
@@ -36,7 +35,6 @@ gulp.task('build-standalone-css', () =>
   buildCSS([
     './src/styles/annotator/highlights.scss',
     './src/styles/annotator/pdfjs-overrides.css',
-    './node_modules/katex/dist/katex.min.css',
   ]),
 );
 
@@ -54,7 +52,6 @@ gulp.task(
   gulp.series('build-css', function watchCSS() {
     gulp.watch(
       [
-        'node_modules/katex/dist/katex.min.css',
         'src/styles/**/*.scss',
         'src/styles/**/*.css',
         'src/**/*.tsx',
@@ -62,25 +59,6 @@ gulp.task(
       ],
       gulp.task('build-css'),
     );
-  }),
-);
-
-const fontFiles = ['node_modules/katex/dist/fonts/*.woff2'];
-
-gulp.task('build-fonts', () => {
-  // Fonts are located in a subdirectory of `build/styles` so that we can reuse
-  // KaTeX's CSS bundle directly without any URL rewriting.
-  const fontsDir = 'build/styles/fonts';
-  return gulp
-    .src(fontFiles, { encoding: false })
-    .pipe(changed(fontsDir))
-    .pipe(gulp.dest(fontsDir));
-});
-
-gulp.task(
-  'watch-fonts',
-  gulp.series('build-fonts', function watchFonts() {
-    gulp.watch(fontFiles, gulp.task('build-fonts'));
   }),
 );
 
@@ -124,10 +102,7 @@ gulp.task('serve-test-pages', () => {
 
 gulp.task(
   'build',
-  gulp.series(
-    gulp.parallel('build-js', 'build-css', 'build-fonts'),
-    'build-boot-script',
-  ),
+  gulp.series(gulp.parallel('build-js', 'build-css'), 'build-boot-script'),
 );
 
 gulp.task(
@@ -137,7 +112,6 @@ gulp.task(
     'serve-test-pages',
     'watch-boot-script',
     'watch-css',
-    'watch-fonts',
     'watch-js',
   ),
 );

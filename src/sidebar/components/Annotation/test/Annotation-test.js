@@ -208,6 +208,19 @@ describe('Annotation', () => {
     );
   });
 
+  it('does not render the quote or body while saving', () => {
+    // While the save (which recovers the math quote server-side) is in flight,
+    // the whole mini-interface is a spinner: no raw quote, no body.
+    fakeStore.isSavingAnnotation.returns(true);
+    fakeMetadata.quote.returns('raw quote');
+
+    const wrapper = createComponent();
+
+    assert.isTrue(wrapper.exists('[data-testid="saving-message"]'));
+    assert.isFalse(wrapper.exists('AnnotationQuote'));
+    assert.isFalse(wrapper.exists('AnnotationBody'));
+  });
+
   describe('reply thread toggle', () => {
     it('should render a toggle button if provided with a toggle callback', () => {
       const fakeOnToggleReplies = sinon.stub();
