@@ -141,7 +141,8 @@ function Annotation({
       )}
       {annotationQuote && !isSaving && (
         <AnnotationQuote
-          draftQuote={!isSaved(annotation) ? annotationQuote : undefined}
+          quote={annotationQuote}
+          isSaved={isSaved(annotation)}
           normalizedQuote={annotation.normalized_quote}
           normalizationError={annotation.normalization_error}
           isHovered={isHovered}

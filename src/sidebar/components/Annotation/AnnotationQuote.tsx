@@ -8,12 +8,21 @@ import InlineControlExcerpt from '../InlineControlExcerpt';
 
 type AnnotationQuoteProps = {
   /**
-   * The live captured selection of a draft that has not been saved yet. A draft has no
-   * server response, so the server-normalization contract below does not apply to it:
-   * the reader composes against the raw selection while the real document shows the
-   * formatted math.
+   * The annotation's raw captured selection — the `exact` field of its TextQuoteSelector,
+   * which for a selection spanning math is the flattened text-layer capture rather than the
+   * mathematics the reader selected.
+   *
+   * This component receives it because it owns the decision of when it may be shown: it is
+   * the live selection of an unsaved draft, and it is never the quote of a saved annotation
+   * (hypothesis-review#7).
    */
-  draftQuote?: string;
+  quote: string;
+  /**
+   * Whether the annotation has a server response yet. A draft does not, so the
+   * server-normalization contract does not apply to it: the reader composes against the
+   * live captured selection while the real document shows the formatted math.
+   */
+  isSaved: boolean;
   /**
    * The selection with rendered math recovered, produced once at intake and stored server-side
    * (h's AnnotationNormalized), joined into the annotation. This is the only text this
@@ -31,29 +40,66 @@ type AnnotationQuoteProps = {
   settings: SidebarSettings;
 };
 
+type QuoteBodyProps = {
+  text: string;
+  isHovered?: boolean;
+  isOrphan?: boolean;
+  settings: SidebarSettings;
+};
+
+function QuoteBody({ text, isHovered, isOrphan, settings }: QuoteBodyProps) {
+  return (
+    <InlineControlExcerpt collapsedHeight={35} overflowThreshold={20}>
+      <StyledText classes={classnames({ 'p-redacted-text': isOrphan })}>
+        <blockquote
+          className={classnames('hover:border-l-blue-quote', {
+            'border-l-blue-quote': isHovered,
+          })}
+          style={applyTheme(['selectionFontFamily'], settings)}
+        >
+          <MarkdownView markdown={text} mentionMode="username" />
+        </blockquote>
+      </StyledText>
+    </InlineControlExcerpt>
+  );
+}
+
 /**
  * Display the selected text of an annotation.
  *
- * The math in a selection is recovered once, at intake, and stored (see the enrichment worker and
- * h's AnnotationNormalized); this component simply renders that stored quote. It runs no
- * recovery of its own — normalization never re-fires on viewing or editing an annotation — and the
- * annotation's anchoring selectors are never involved in what is shown.
+ * The math in a selection is recovered once, at intake, by h's normalization service and
+ * stored as AnnotationNormalized; this component simply renders that stored quote. It runs
+ * no recovery of its own — normalization never re-fires on viewing or editing an
+ * annotation — and for a saved annotation the raw capture it is handed is never displayed.
  */
 function AnnotationQuote({
-  draftQuote,
+  quote,
+  isSaved,
   normalizedQuote,
   normalizationError,
   isHovered,
   isOrphan,
   settings,
 }: AnnotationQuoteProps) {
+  if (!isSaved) {
+    // An unsaved draft has no server response yet, so its live captured selection is what
+    // the reader is composing against and what is shown.
+    return (
+      <QuoteBody
+        text={quote}
+        isHovered={isHovered}
+        isOrphan={isOrphan}
+        settings={settings}
+      />
+    );
+  }
+
   // A *saved* quote-bearing annotation without a normalized quote is a broken response,
   // not a display choice: the raw TextQuoteSelector capture is never rendered as the
   // quote of a stored annotation (hypothesis-review#7). The backend normally supplies
   // `normalization_error` itself; this branch also covers a payload that carries
-  // neither field. An unsaved draft has no server response yet and shows its live
-  // captured selection instead.
-  if (draftQuote === undefined && (normalizationError || !normalizedQuote)) {
+  // neither field.
+  if (normalizationError || !normalizedQuote) {
     return (
       <p
         className="border-l-4 border-l-red-error bg-red-light px-3 py-2 text-sm text-red-dark"
@@ -65,20 +111,13 @@ function AnnotationQuote({
     );
   }
 
-  const displayed = draftQuote ?? normalizedQuote ?? '';
   return (
-    <InlineControlExcerpt collapsedHeight={35} overflowThreshold={20}>
-      <StyledText classes={classnames({ 'p-redacted-text': isOrphan })}>
-        <blockquote
-          className={classnames('hover:border-l-blue-quote', {
-            'border-l-blue-quote': isHovered,
-          })}
-          style={applyTheme(['selectionFontFamily'], settings)}
-        >
-          <MarkdownView markdown={displayed} mentionMode="username" />
-        </blockquote>
-      </StyledText>
-    </InlineControlExcerpt>
+    <QuoteBody
+      text={normalizedQuote}
+      isHovered={isHovered}
+      isOrphan={isOrphan}
+      settings={settings}
+    />
   );
 }
 
