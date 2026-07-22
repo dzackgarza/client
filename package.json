@@ -121,8 +121,8 @@
     "test": "gulp test",
     "test:watch": "gulp test --live",
     "typecheck": "tsc --build tsconfig.json",
-    "postinstall": "patch-package",
-    "prepack": "yarn build"
+    "prepack": "yarn build",
+    "prepare": "patch-package"
   },
   "packageManager": "yarn@3.6.0",
   "dependencies": {
