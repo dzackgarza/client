@@ -48,6 +48,10 @@ function SendToAgentButton() {
       data-testid="send-to-agent"
       title={title}
       icon={ArrowRightIcon}
+      // Same state vocabulary the highlights button uses: pressed reads as on, so a live
+      // session is visible in the toolbar rather than only in a tooltip.
+      pressed={listening}
+      disabled={!listening}
       onClick={() => send()}
     />
   );
