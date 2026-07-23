@@ -59,7 +59,11 @@ function SendToAgentButton() {
           aria-hidden="true"
           className={classnames(
             'absolute inset-0 rounded pointer-events-none',
-            'border-2 border-brand motion-safe:animate-ping',
+            // Thin, translucent and slow: a ripple you notice rather than one that
+            // announces itself. The default ping is a one-second 2x flare, which is far
+            // too loud for something that may sit there for an hour.
+            'border border-brand/40 motion-safe:animate-ping',
+            '[animation-duration:3s]',
           )}
         />
       )}
