@@ -34,22 +34,40 @@ import { MoveModeIcon, ResizeModeIcon } from './icons';
 function SendToAgentButton() {
   const { available, listening, queued, send } = useReviewSession();
 
-  if (!available) {
-    return null;
-  }
-
-  const title = listening
-    ? `Send ${queued} to agent`
-    : 'No agent session — run `annotate wait`';
+  // Always rendered. Hiding it when no relay answered made "the extension has not
+  // injected into this tab yet", "the relay is broken" and "there is no such feature"
+  // look identical -- an empty space -- which is the opposite of an indicator.
+  const title = !available
+    ? 'Agent relay not connected — reload the page'
+    : listening
+      ? `Send ${queued} to agent`
+      : 'No agent session — run `annotate wait`';
 
   return (
-    <ToolbarButton
-      data-testid="send-to-agent"
-      title={title}
-      icon={ArrowRightIcon}
-      disabled={!listening}
-      onClick={() => send()}
-    />
+    <div className="relative">
+      <ToolbarButton
+        data-testid="send-to-agent"
+        title={title}
+        icon={ArrowRightIcon}
+        disabled={!listening}
+        onClick={() => send()}
+      />
+      {/* The indicator: what the backend is doing, readable without hovering. Green
+          while a session is listening, and carrying the queue depth, so a note that has
+          landed shows up as a number going up. */}
+      <span
+        data-testid="agent-status"
+        title={title}
+        className={classnames(
+          'absolute -top-1 -right-1 min-w-[16px] h-[16px] px-[3px]',
+          'rounded-full border border-white',
+          'text-[10px] leading-[14px] font-bold text-center text-white',
+          listening ? 'bg-green-600' : 'bg-grey-5',
+        )}
+      >
+        {listening ? queued : ''}
+      </span>
+    </div>
   );
 }
 

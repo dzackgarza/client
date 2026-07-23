@@ -44,6 +44,23 @@ describe('Toolbar send-to-agent rendering', () => {
     return wrapper;
   }
 
+  it('shows the control with no relay at all, saying so', async () => {
+    // The state that used to render nothing: an indicator that disappears cannot
+    // distinguish "not connected" from "no such feature".
+    const wrapper = mount(<Toolbar {...toolbarProps} />, { connected: true });
+    await new Promise(resolve => setTimeout(resolve, 20));
+    wrapper.update();
+
+    const button = wrapper.find('[data-testid="send-to-agent"]').last();
+    assert.isTrue(button.exists());
+    assert.include(button.prop('title'), 'not connected');
+    await page.screenshot({
+      element: wrapper.getDOMNode(),
+      path: '__screenshots__/toolbar/no-relay.png',
+    });
+    wrapper.unmount();
+  });
+
   it('shows the control beside the others when a session is listening', async () => {
     const wrapper = await shoot('session-listening', {
       listening: true,
@@ -52,8 +69,10 @@ describe('Toolbar send-to-agent rendering', () => {
 
     const button = wrapper.find('[data-testid="send-to-agent"]').last();
     assert.isTrue(button.exists());
-    // The queue depth is what the reader checks before closing a session.
+    // The queue depth is what the reader checks before closing a session, and it is on
+    // screen rather than in a tooltip.
     assert.include(button.prop('title'), '3');
+    assert.equal(wrapper.find('[data-testid="agent-status"]').last().text(), '3');
     wrapper.unmount();
   });
 
