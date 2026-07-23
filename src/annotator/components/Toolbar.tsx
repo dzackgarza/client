@@ -1,4 +1,5 @@
 import {
+  ArrowRightIcon,
   Button,
   AnnotateIcon,
   CancelIcon,
@@ -19,7 +20,38 @@ import classnames from 'classnames';
 import type { JSX, RefObject } from 'preact';
 
 import type { AnnotationTool, KeyboardMode } from '../../types/annotator';
+import { useReviewSession } from '../review-session';
 import { MoveModeIcon, ResizeModeIcon } from './icons';
+
+/**
+ * Close the open review session, delivering everything written during it to the agent.
+ *
+ * Rendered only when the extension's relay is present: without it the page has no way to
+ * reach the review service, and a control that cannot work should not be offered. It is a
+ * `ToolbarButton` like the others rather than a lookalike, so it inherits their size,
+ * focus treatment and pressed styling by construction.
+ */
+function SendToAgentButton() {
+  const { available, listening, queued, send } = useReviewSession();
+
+  if (!available) {
+    return null;
+  }
+
+  const title = listening
+    ? `Send ${queued} to agent`
+    : 'No agent session — run `annotate wait`';
+
+  return (
+    <ToolbarButton
+      data-testid="send-to-agent"
+      title={title}
+      icon={ArrowRightIcon}
+      disabled={!listening}
+      onClick={() => send()}
+    />
+  );
+}
 
 /**
  * Title for the rectangle annotation toolbar button based on keyboard state.
@@ -310,6 +342,7 @@ export default function Toolbar({
               pressedBackground={false}
               onClick={toggleHighlights}
             />
+            <SendToAgentButton />
             {supportedTools.includes('selection') && (
               <ToolbarButton
                 data-testid="text-annotation"
