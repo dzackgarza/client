@@ -44,6 +44,29 @@ describe('Toolbar send-to-agent rendering', () => {
     return wrapper;
   }
 
+  it('photographs the send in flight', async () => {
+    const wrapper = mount(<Toolbar {...toolbarProps} />, { connected: true });
+    await new Promise(resolve => setTimeout(resolve, 20));
+    // A session is listening, and the send has been clicked but not yet answered: the
+    // one moment the button is genuinely busy.
+    window.dispatchEvent(
+      new CustomEvent('hypothesis:review-status', {
+        detail: { listening: true, queued: 2 },
+      }),
+    );
+    await new Promise(resolve => setTimeout(resolve, 20));
+    wrapper.update();
+    wrapper.find('[data-testid="send-to-agent"]').last().props().onClick();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    wrapper.update();
+
+    await page.screenshot({
+      element: wrapper.getDOMNode(),
+      path: '__screenshots__/toolbar/sending.png',
+    });
+    wrapper.unmount();
+  });
+
   it('shows the control with no relay at all, saying so', async () => {
     // The state that used to render nothing: an indicator that disappears cannot
     // distinguish "not connected" from "no such feature".
