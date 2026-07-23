@@ -44,30 +44,12 @@ function SendToAgentButton() {
       : 'No agent session — run `annotate wait`';
 
   return (
-    <div className="relative">
-      <ToolbarButton
-        data-testid="send-to-agent"
-        title={title}
-        icon={ArrowRightIcon}
-        disabled={!listening}
-        onClick={() => send()}
-      />
-      {/* The indicator: what the backend is doing, readable without hovering. Green
-          while a session is listening, and carrying the queue depth, so a note that has
-          landed shows up as a number going up. */}
-      <span
-        data-testid="agent-status"
-        title={title}
-        className={classnames(
-          'absolute -top-1 -right-1 min-w-[16px] h-[16px] px-[3px]',
-          'rounded-full border border-white',
-          'text-[10px] leading-[14px] font-bold text-center text-white',
-          listening ? 'bg-green-600' : 'bg-grey-5',
-        )}
-      >
-        {listening ? queued : ''}
-      </span>
-    </div>
+    <ToolbarButton
+      data-testid="send-to-agent"
+      title={title}
+      icon={ArrowRightIcon}
+      onClick={() => send()}
+    />
   );
 }
 

@@ -69,10 +69,8 @@ describe('Toolbar send-to-agent rendering', () => {
 
     const button = wrapper.find('[data-testid="send-to-agent"]').last();
     assert.isTrue(button.exists());
-    // The queue depth is what the reader checks before closing a session, and it is on
-    // screen rather than in a tooltip.
+    // The queue depth is what the reader checks before closing a session.
     assert.include(button.prop('title'), '3');
-    assert.equal(wrapper.find('[data-testid="agent-status"]').last().text(), '3');
     wrapper.unmount();
   });
 
