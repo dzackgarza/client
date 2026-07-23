@@ -10,6 +10,7 @@ import {
   NoteIcon,
   PinIcon,
   ShowIcon,
+  Spinner,
 } from '@hypothesis/frontend-shared';
 import type { ButtonProps } from '@hypothesis/frontend-shared';
 import type {
@@ -18,6 +19,7 @@ import type {
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { JSX, RefObject } from 'preact';
+import { useState } from 'preact/hooks';
 
 import type { AnnotationTool, KeyboardMode } from '../../types/annotator';
 import { useReviewSession } from '../review-session';
@@ -31,8 +33,12 @@ import { MoveModeIcon, ResizeModeIcon } from './icons';
  * `ToolbarButton` like the others rather than a lookalike, so it inherits their size,
  * focus treatment and pressed styling by construction.
  */
+/** `Spinner` is not icon-shaped, so it is adapted to what ToolbarButton takes. */
+const SendingIcon = () => <Spinner size="sm" />;
+
 function SendToAgentButton() {
   const { available, listening, queued, send } = useReviewSession();
+  const [sending, setSending] = useState(false);
 
   // Always rendered. Hiding it when no relay answered made "the extension has not
   // injected into this tab yet", "the relay is broken" and "there is no such feature"
@@ -47,12 +53,24 @@ function SendToAgentButton() {
     <ToolbarButton
       data-testid="send-to-agent"
       title={title}
-      icon={ArrowRightIcon}
-      // Same state vocabulary the highlights button uses: pressed reads as on, so a live
-      // session is visible in the toolbar rather than only in a tooltip.
+      icon={sending ? SendingIcon : ArrowRightIcon}
+      // A live session is a process sitting and waiting for this click, which a static
+      // shade does not say. It pulses while it waits -- honouring reduced-motion, as the
+      // toasts do -- and shows a real spinner only while a send is actually in flight,
+      // because that is the one moment something is genuinely busy.
+      classes={classnames({
+        'motion-safe:animate-pulse': listening && !sending,
+      })}
       pressed={listening}
-      disabled={!listening}
-      onClick={() => send()}
+      disabled={!listening || sending}
+      onClick={async () => {
+        setSending(true);
+        try {
+          await send();
+        } finally {
+          setSending(false);
+        }
+      }}
     />
   );
 }
