@@ -77,6 +77,7 @@ describe('Toolbar send-to-agent rendering', () => {
     const button = wrapper.find('[data-testid="send-to-agent"]').last();
     assert.isTrue(button.exists());
     assert.include(button.prop('title'), 'not connected');
+    assert.isFalse(wrapper.find('[data-testid="agent-live"]').exists());
     await page.screenshot({
       element: wrapper.getDOMNode(),
       path: '__screenshots__/toolbar/no-relay.png',
@@ -94,6 +95,8 @@ describe('Toolbar send-to-agent rendering', () => {
     assert.isTrue(button.exists());
     // The queue depth is what the reader checks before closing a session.
     assert.include(button.prop('title'), '3');
+    // The live ring, which a still frame cannot catch mid-ping.
+    assert.isTrue(wrapper.find('[data-testid="agent-live"]').exists());
     wrapper.unmount();
   });
 

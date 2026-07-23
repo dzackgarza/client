@@ -42,11 +42,27 @@ function SendToAgentButton() {
       ? `Send ${queued} to agent`
       : 'No agent session — run `annotate wait`';
 
-  // The motion goes on a wrapper, not on the button: `classes` replaces ToolbarButton's
-  // own styling, which drew the arrow invisible. Not `pressed` either -- that means the
-  // reader toggled something on, like highlights, and nothing here is a toggle.
+  // Motion, but not fading: `animate-pulse` dims what it is applied to, which is the
+  // skeleton-loading idiom and reads as *less* available -- backwards for a control that
+  // is ready and waiting to be clicked. A ping ring is additive instead: the button stays
+  // at full strength and a ring expands out of it, the way a live/recording indicator
+  // does. It sits behind the button and takes no clicks. Reduced motion is honoured, as
+  // the toasts do it.
+  //
+  // The ring is a sibling, not a `classes` override: passing `classes` to ToolbarButton
+  // replaces its own styling and draws the icon invisible.
   return (
-    <div className={classnames({ 'motion-safe:animate-pulse': listening })}>
+    <div className="relative">
+      {listening && (
+        <span
+          data-testid="agent-live"
+          aria-hidden="true"
+          className={classnames(
+            'absolute inset-0 rounded pointer-events-none',
+            'border-2 border-brand motion-safe:animate-ping',
+          )}
+        />
+      )}
       <ToolbarButton
         data-testid="send-to-agent"
         title={title}
