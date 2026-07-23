@@ -122,6 +122,7 @@ describe('StreamerService', () => {
         addAnnotations: sinon.stub(),
         annotationExists: sinon.stub().returns(false),
         clearPendingUpdates: sinon.stub(),
+        clearPendingDeletions: sinon.stub(),
         pendingUpdates: sinon.stub().returns({}),
         pendingDeletions: sinon.stub().returns({}),
         profile: sinon.stub().returns({
@@ -483,6 +484,29 @@ describe('StreamerService', () => {
         fakeWebSocket.notify(fixtures.createNotification);
 
         assert.notCalled(fakeStore.addAnnotations);
+      });
+    });
+  });
+
+  describe('deletions', () => {
+    it('removes a deleted annotation at once, without waiting for apply-updates', () => {
+      // The drain case: the annotation is already gone from the server, so leaving it on
+      // screen shows the reader something that no longer exists until they ask for an
+      // update. Queued *updates* are a different matter and stay queued.
+      fakeStore.pendingDeletions.returns({ 'an-id': true });
+      createDefaultStreamer();
+      // Updates gated behind the apply-updates control, which is the state the reader is
+      // in while reading. The deletion must still take effect.
+      return activeStreamer.connect({ applyUpdatesImmediately: false }).then(() => {
+        fakeWebSocket.notify({
+          type: 'annotation-notification',
+          options: { action: 'delete' },
+          payload: [{ id: 'an-id' }],
+        });
+
+        assert.calledWith(fakeStore.removeAnnotations, [{ id: 'an-id' }]);
+        assert.called(fakeStore.clearPendingDeletions);
+        assert.notCalled(fakeStore.clearPendingUpdates);
       });
     });
   });

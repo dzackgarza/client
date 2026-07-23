@@ -55,6 +55,10 @@ const reducers = {
     return { pendingUpdates: {}, pendingDeletions: {} };
   },
 
+  CLEAR_PENDING_DELETIONS(): Partial<State> {
+    return { pendingDeletions: {} };
+  },
+
   ADD_ANNOTATIONS(
     state: State,
     { annotations }: { annotations: Annotation[] },
@@ -172,6 +176,11 @@ function receiveRealTimeUpdates({
 function clearPendingUpdates() {
   return makeAction(reducers, 'CLEAR_PENDING_UPDATES', undefined);
 }
+/** Forget deletions that have been applied, leaving queued updates queued. */
+function clearPendingDeletions() {
+  return makeAction(reducers, 'CLEAR_PENDING_DELETIONS', undefined);
+}
+
 
 /**
  * Return added or updated annotations received via the WebSocket
@@ -270,6 +279,7 @@ export const realTimeUpdatesModule = createStoreModule(initialState, {
   actionCreators: {
     receiveRealTimeUpdates,
     clearPendingUpdates,
+    clearPendingDeletions,
   },
   selectors: {
     hasPendingDeletion,

@@ -120,6 +120,17 @@ export class StreamerService {
     this._store.clearPendingUpdates();
   }
 
+  /** Remove annotations the server has said are gone, leaving queued updates alone. */
+  private _applyPendingDeletions() {
+    const deletions = Object.keys(this._store.pendingDeletions()).map(id => ({
+      id,
+    }));
+    if (deletions.length) {
+      this._store.removeAnnotations(deletions);
+      this._store.clearPendingDeletions();
+    }
+  }
+
   private _handleSocketError(websocketURL: string, event: ErrorEvent) {
     warnOnce('Error connecting to H push notification service:', event);
 
@@ -159,6 +170,12 @@ export class StreamerService {
           this._store.receiveRealTimeUpdates({
             deletedAnnotations: annotations,
           });
+          // Applied at once rather than queued behind "apply updates". That gate exists
+          // so new and edited annotations do not shift the list while it is being read;
+          // a deletion is the opposite case -- the annotation is already gone from the
+          // server, and leaving it on screen means the reader is looking at something
+          // that no longer exists until they think to ask for an update.
+          this._applyPendingDeletions();
           break;
       }
 
