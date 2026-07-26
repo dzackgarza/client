@@ -27,8 +27,8 @@ import { MoveModeIcon, ResizeModeIcon } from './icons';
 function SendToAgentButton() {
   const { enabled, toggle } = useAgentQueue();
   const title = enabled
-    ? 'Stop flagging new annotations for the agent'
-    : 'Flag new annotations for the agent';
+    ? 'Automatically queue new annotations for the agent: on'
+    : 'Automatically queue new annotations for the agent: off';
   return (
     <div className="relative">
       {enabled && (
@@ -36,9 +36,9 @@ function SendToAgentButton() {
           data-testid="agent-queue-glow"
           aria-hidden="true"
           className={classnames(
-            'absolute inset-0 rounded pointer-events-none',
-            'shadow-[0_0_0.75rem_0.2rem_rgba(189,56,92,0.35)]',
-            'motion-safe:animate-pulse',
+            'absolute inset-0 rounded pointer-events-none opacity-50',
+            'shadow-[0_0_0.65rem_0.18rem_rgba(189,28,43,0.42)]',
+            'motion-safe:animate-agent-queue-on',
           )}
         />
       )}
@@ -47,6 +47,12 @@ function SendToAgentButton() {
         title={title}
         icon={ArrowRightIcon}
         pressed={enabled}
+        pressedBackground={false}
+        classes={classnames(
+          'transition-all duration-200 active:translate-y-px active:shadow-inner',
+          enabled &&
+            '!border-brand !bg-brand !text-white enabled:hover:!bg-brand-dark enabled:hover:!text-white',
+        )}
         onClick={toggle}
       />
     </div>
@@ -124,6 +130,7 @@ type ToolbarButtonProps = PresentationalProps &
  * Style an IconButton for use on the Toolbar
  */
 function ToolbarButton({
+  classes,
   icon: Icon,
   pressedBackground = true,
   ...buttonProps
@@ -139,6 +146,7 @@ function ToolbarButton({
         'w-[30px] h-[30px] touch:h-[40px]',
         'shadow border bg-white text-grey-6 hover:text-grey-9',
         pressedBackground && 'aria-pressed:bg-grey-3',
+        classes,
       )}
       {...buttonProps}
       size="custom"

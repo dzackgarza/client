@@ -20,18 +20,32 @@ describe('Toolbar send-to-agent toggle', () => {
     setAgentQueueEnabled(false);
   });
 
-  it('toggles and glows immediately', async () => {
+  it('shows distinct off and on states when toggled', async () => {
     const wrapper = mount(<Toolbar {...toolbarProps} />, { connected: true });
     const button = wrapper.find('[data-testid="send-to-agent"]').last();
 
     assert.notStrictEqual(button.prop('disabled'), true);
     assert.isFalse(button.prop('aria-pressed'));
+    assert.equal(
+      button.prop('title'),
+      'Automatically queue new annotations for the agent: off',
+    );
+    await page.screenshot({
+      element: wrapper.getDOMNode(),
+      path: '__screenshots__/toolbar/queue-disabled.png',
+    });
+
     button.props().onClick();
     await new Promise(resolve => setTimeout(resolve, 0));
     wrapper.update();
 
-    assert.isTrue(
-      wrapper.find('[data-testid="send-to-agent"]').last().prop('aria-pressed'),
+    const enabledButton = wrapper
+      .find('[data-testid="send-to-agent"]')
+      .last();
+    assert.isTrue(enabledButton.prop('aria-pressed'));
+    assert.equal(
+      enabledButton.prop('title'),
+      'Automatically queue new annotations for the agent: on',
     );
     assert.isTrue(wrapper.find('[data-testid="agent-queue-glow"]').exists());
     await page.screenshot({
