@@ -2,6 +2,7 @@ import { delay, waitFor } from '@hypothesis/frontend-testing';
 import sinon from 'sinon';
 
 import { EventEmitter } from '../../shared/event-emitter';
+import { setAgentQueueEnabled } from '../agent-queue';
 import { DrawError } from '../draw-tool';
 import { Guest, $imports } from '../guest';
 
@@ -123,6 +124,7 @@ describe('Guest', () => {
   };
 
   beforeEach(() => {
+    setAgentQueueEnabled(false);
     guests = [];
     fakeHighlighter = {
       getHighlightsFromPoint: sinon.stub().returns([]),
@@ -1710,6 +1712,16 @@ describe('Guest', () => {
 
       const annotation = await guest.createAnnotationFromSelection();
 
+      assert.calledWith(sidebarRPC().call, 'createAnnotation', annotation);
+    });
+
+    it('adds the agent queue tag through the native create event when enabled', async () => {
+      setAgentQueueEnabled(true);
+      const guest = createGuest();
+
+      const annotation = await guest.createAnnotationFromSelection();
+
+      assert.deepEqual(annotation.tags, ['agent:queue']);
       assert.calledWith(sidebarRPC().call, 'createAnnotation', annotation);
     });
   });

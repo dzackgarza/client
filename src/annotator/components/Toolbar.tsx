@@ -20,37 +20,15 @@ import classnames from 'classnames';
 import type { JSX, RefObject } from 'preact';
 
 import type { AnnotationTool, KeyboardMode } from '../../types/annotator';
-import { useAgentQueue } from '../review-session';
+import { useAgentQueue } from '../agent-queue';
 import { MoveModeIcon, ResizeModeIcon } from './icons';
 
-/**
- * Toggle positive queue flagging for annotations.
- *
- * Rendered only when the extension's relay is present: without it the page has no way to
- * reach the review service, and a control that cannot work should not be offered. It is a
- * `ToolbarButton` like the others rather than a lookalike, so it inherits their size,
- * focus treatment and pressed styling by construction.
- */
+/** Toggle queue flagging for annotations created after this point. */
 function SendToAgentButton() {
-  const { available, enabled, queued, toggle } = useAgentQueue();
-
-  // Always rendered: hiding it when no relay answered made "not injected into this tab
-  // yet", "relay broken" and "no such feature" look identical -- an empty space.
-  const title = !available
-    ? 'Agent queue relay not connected — reload the page'
-    : enabled
-      ? `Stop flagging annotations for the agent (${queued} queued)`
-      : 'Flag all annotations for the agent';
-
-  // Motion, but not fading: `animate-pulse` dims what it is applied to, which is the
-  // skeleton-loading idiom and reads as *less* available -- backwards for a control that
-  // is ready and waiting to be clicked. A ping ring is additive instead: the button stays
-  // at full strength and a ring expands out of it, the way a live/recording indicator
-  // does. It sits behind the button and takes no clicks. Reduced motion is honoured, as
-  // the toasts do it.
-  //
-  // The ring is a sibling, not a `classes` override: passing `classes` to ToolbarButton
-  // replaces its own styling and draws the icon invisible.
+  const { enabled, toggle } = useAgentQueue();
+  const title = enabled
+    ? 'Stop flagging new annotations for the agent'
+    : 'Flag new annotations for the agent';
   return (
     <div className="relative">
       {enabled && (
@@ -68,9 +46,8 @@ function SendToAgentButton() {
         data-testid="send-to-agent"
         title={title}
         icon={ArrowRightIcon}
-        disabled={!available}
         pressed={enabled}
-        onClick={() => toggle()}
+        onClick={toggle}
       />
     </div>
   );

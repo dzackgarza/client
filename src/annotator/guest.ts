@@ -27,6 +27,7 @@ import type {
   SidebarToGuestCalls,
 } from '../types/port-rpc-calls';
 import { Adder } from './adder';
+import { flagForAgent } from './agent-queue';
 import { TextRange } from './anchoring/text-range';
 import { BucketBarClient } from './bucket-bar-client';
 import { DrawTool, DrawError } from './draw-tool';
@@ -1065,12 +1066,12 @@ export class Guest
           },
         ];
 
-        const annotation: AnnotationData = {
+        const annotation = flagForAgent({
           uri: info.uri,
           document: info.metadata,
           target,
           $tag: 'a:' + generateHexString(8),
-        };
+        });
 
         this._sidebarRPC.call('createAnnotation', annotation);
         this.anchor(annotation);
@@ -1141,14 +1142,14 @@ export class Guest
       selector: selectors,
     }));
 
-    const annotation: AnnotationData = {
+    const annotation = flagForAgent({
       uri: info.uri,
       document: info.metadata,
       target,
       $highlight: highlight,
       $cluster: highlight ? 'user-highlights' : 'user-annotations',
       $tag: 'a:' + generateHexString(8),
-    };
+    });
 
     this._sidebarRPC.call('createAnnotation', annotation);
     this.anchor(annotation);
