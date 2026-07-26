@@ -20,11 +20,11 @@ import classnames from 'classnames';
 import type { JSX, RefObject } from 'preact';
 
 import type { AnnotationTool, KeyboardMode } from '../../types/annotator';
-import { useReviewSession } from '../review-session';
+import { useAgentQueue } from '../review-session';
 import { MoveModeIcon, ResizeModeIcon } from './icons';
 
 /**
- * Close the open review session, delivering everything written during it to the agent.
+ * Toggle positive queue flagging for annotations.
  *
  * Rendered only when the extension's relay is present: without it the page has no way to
  * reach the review service, and a control that cannot work should not be offered. It is a
@@ -32,15 +32,15 @@ import { MoveModeIcon, ResizeModeIcon } from './icons';
  * focus treatment and pressed styling by construction.
  */
 function SendToAgentButton() {
-  const { available, listening, queued, send } = useReviewSession();
+  const { available, enabled, queued, toggle } = useAgentQueue();
 
   // Always rendered: hiding it when no relay answered made "not injected into this tab
   // yet", "relay broken" and "no such feature" look identical -- an empty space.
   const title = !available
-    ? 'Agent relay not connected — reload the page'
-    : listening
-      ? `Send ${queued} to agent`
-      : 'No agent session — run `annotate wait`';
+    ? 'Agent queue relay not connected — reload the page'
+    : enabled
+      ? `Stop flagging annotations for the agent (${queued} queued)`
+      : 'Flag all annotations for the agent';
 
   // Motion, but not fading: `animate-pulse` dims what it is applied to, which is the
   // skeleton-loading idiom and reads as *less* available -- backwards for a control that
@@ -53,17 +53,14 @@ function SendToAgentButton() {
   // replaces its own styling and draws the icon invisible.
   return (
     <div className="relative">
-      {listening && (
+      {enabled && (
         <span
-          data-testid="agent-live"
+          data-testid="agent-queue-glow"
           aria-hidden="true"
           className={classnames(
             'absolute inset-0 rounded pointer-events-none',
-            // Thin, translucent and slow: a ripple you notice rather than one that
-            // announces itself. The default ping is a one-second 2x flare, which is far
-            // too loud for something that may sit there for an hour.
-            'border border-brand/40 motion-safe:animate-ping',
-            '[animation-duration:3s]',
+            'shadow-[0_0_0.75rem_0.2rem_rgba(189,56,92,0.35)]',
+            'motion-safe:animate-pulse',
           )}
         />
       )}
@@ -71,8 +68,9 @@ function SendToAgentButton() {
         data-testid="send-to-agent"
         title={title}
         icon={ArrowRightIcon}
-        disabled={!listening}
-        onClick={() => send()}
+        disabled={!available}
+        pressed={enabled}
+        onClick={() => toggle()}
       />
     </div>
   );

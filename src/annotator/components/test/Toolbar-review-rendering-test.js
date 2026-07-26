@@ -29,7 +29,7 @@ describe('Toolbar send-to-agent rendering', () => {
     // attaches its listener in an effect.
     await new Promise(resolve => setTimeout(resolve, 20));
     window.dispatchEvent(
-      new CustomEvent('hypothesis:review-status', { detail }),
+      new CustomEvent('hypothesis:agent-queue-status', { detail }),
     );
     await new Promise(resolve => setTimeout(resolve, 20));
 
@@ -50,8 +50,8 @@ describe('Toolbar send-to-agent rendering', () => {
     // A session is listening, and the send has been clicked but not yet answered: the
     // one moment the button is genuinely busy.
     window.dispatchEvent(
-      new CustomEvent('hypothesis:review-status', {
-        detail: { listening: true, queued: 2 },
+      new CustomEvent('hypothesis:agent-queue-status', {
+        detail: { enabled: true, queued: 2 },
       }),
     );
     await new Promise(resolve => setTimeout(resolve, 20));
@@ -77,7 +77,7 @@ describe('Toolbar send-to-agent rendering', () => {
     const button = wrapper.find('[data-testid="send-to-agent"]').last();
     assert.isTrue(button.exists());
     assert.include(button.prop('title'), 'not connected');
-    assert.isFalse(wrapper.find('[data-testid="agent-live"]').exists());
+    assert.isFalse(wrapper.find('[data-testid="agent-queue-glow"]').exists());
     await page.screenshot({
       element: wrapper.getDOMNode(),
       path: '__screenshots__/toolbar/no-relay.png',
@@ -85,9 +85,9 @@ describe('Toolbar send-to-agent rendering', () => {
     wrapper.unmount();
   });
 
-  it('shows the control beside the others when a session is listening', async () => {
-    const wrapper = await shoot('session-listening', {
-      listening: true,
+  it('shows the control beside the others when queue flagging is enabled', async () => {
+    const wrapper = await shoot('queue-enabled', {
+      enabled: true,
       queued: 3,
     });
 
@@ -96,17 +96,21 @@ describe('Toolbar send-to-agent rendering', () => {
     // The queue depth is what the reader checks before closing a session.
     assert.include(button.prop('title'), '3');
     // The live ring, which a still frame cannot catch mid-ping.
-    assert.isTrue(wrapper.find('[data-testid="agent-live"]').exists());
+    assert.isTrue(wrapper.find('[data-testid="agent-queue-glow"]').exists());
+    assert.isTrue(button.prop('aria-pressed'));
     wrapper.unmount();
   });
 
-  it('shows the control disabled, with the reason, when no session is listening',
-    async () => {
-      const wrapper = await shoot('no-session', { listening: false });
-
-      const button = wrapper.find('[data-testid="send-to-agent"]').last();
-      assert.isTrue(button.exists());
-      assert.include(button.prop('title'), 'annotate wait');
-      wrapper.unmount();
+  it('shows the available control without a glow when flagging is disabled', async () => {
+    const wrapper = await shoot('queue-disabled', {
+      enabled: false,
+      queued: 0,
     });
+
+    const button = wrapper.find('[data-testid="send-to-agent"]').last();
+    assert.isTrue(button.exists());
+    assert.isFalse(button.prop('aria-pressed'));
+    assert.isFalse(wrapper.find('[data-testid="agent-queue-glow"]').exists());
+    wrapper.unmount();
+  });
 });
